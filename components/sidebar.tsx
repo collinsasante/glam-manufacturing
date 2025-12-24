@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -78,7 +79,14 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-slate-200 bg-white">
-      <div className="flex h-16 items-center border-b border-slate-200 px-6">
+      <div className="flex h-16 items-center gap-3 border-b border-slate-200 px-6">
+        <Image
+          src="/logo_red.png"
+          alt="GlamPack Logo"
+          width={40}
+          height={40}
+          className="object-contain"
+        />
         <h1 className="text-xl font-bold text-slate-900">GlamPack</h1>
       </div>
 

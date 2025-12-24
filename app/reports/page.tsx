@@ -53,7 +53,7 @@ export default function ReportsPage() {
       setLoading(true);
       const [materials, finishedGoods, movements, transfers, deliveries, manufacturing, suppliers] = await Promise.all([
         tables.rawMaterials.select({ maxRecords: 500 }).all(),
-        tables.finishedGoods.select({ maxRecords: 500 }).all(),
+        tables.finishedGoodsWarehouse.select({ maxRecords: 500 }).all(),
         tables.stockMovement.select({ maxRecords: 500 }).all(),
         tables.stockTransfer.select({ maxRecords: 500 }).all(),
         tables.deliveries.select({ maxRecords: 500 }).all(),

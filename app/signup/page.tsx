@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Package, Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
+import Image from 'next/image';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -62,12 +63,16 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-900 text-white">
-              <Package className="h-8 w-8" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/logo_red.png"
+              alt="GlamPack Logo"
+              width={200}
+              height={200}
+              className="object-contain"
+            />
           </div>
-          <CardTitle className="text-3xl font-bold text-slate-900">Create Account</CardTitle>
+          <CardTitle className="text-xl font-bold text-slate-900">Create Account</CardTitle>
           <CardDescription>Sign up to get started with GlamPack Warehouse</CardDescription>
         </CardHeader>
         <CardContent>
