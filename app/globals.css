@@ -24,3 +24,42 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Darken placeholder text globally */
+::placeholder {
+  color: rgb(71 85 105) !important; /* slate-600 */
+  opacity: 1;
+}
+
+textarea::placeholder {
+  color: rgb(71 85 105) !important; /* slate-600 */
+  opacity: 1;
+}
+
+input::placeholder {
+  color: rgb(71 85 105) !important; /* slate-600 */
+  opacity: 1;
+}
+
+select::placeholder {
+  color: rgb(71 85 105) !important; /* slate-600 */
+  opacity: 1;
+}
+
+/* Ensure all input, select, and textarea values are dark and visible */
+input,
+select,
+textarea {
+  color: rgb(15 23 42) !important; /* slate-900 */
+}
+
+/* Ensure textarea has proper styling */
+textarea {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Make all labels black, especially those with asterisks */
+label {
+  color: rgb(0 0 0) !important; /* Pure black */
+  font-weight: 500;
+}
