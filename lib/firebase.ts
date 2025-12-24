@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getAnalytics, isSupported } from 'firebase/analytics';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,21 +13,13 @@ const firebaseConfig = {
 };
 
 // Only initialize Firebase in browser environment with valid config
-let app;
-let auth;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
 
 if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
   // Initialize Firebase only if it hasn't been initialized
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
-} else if (typeof window === 'undefined') {
-  // Server-side: create minimal mock to prevent build errors
-  app = null as any;
-  auth = null as any;
-} else {
-  // Browser without config: create minimal mock
-  app = null as any;
-  auth = null as any;
 }
 
 // Initialize Analytics only in browser and if supported
