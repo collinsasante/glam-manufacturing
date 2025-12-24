@@ -12,9 +12,23 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only if it hasn't been initialized
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const auth = getAuth(app);
+// Only initialize Firebase in browser environment with valid config
+let app;
+let auth;
+
+if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
+  // Initialize Firebase only if it hasn't been initialized
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+  auth = getAuth(app);
+} else if (typeof window === 'undefined') {
+  // Server-side: create minimal mock to prevent build errors
+  app = null as any;
+  auth = null as any;
+} else {
+  // Browser without config: create minimal mock
+  app = null as any;
+  auth = null as any;
+}
 
 // Initialize Analytics only in browser and if supported
 let analytics;
