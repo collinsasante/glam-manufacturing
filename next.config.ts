@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export', // Enable static exports for Cloudflare Pages
+  // No static export - use SSR for dynamic routes and API data
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Cloudflare Pages compatibility
   },
 };
 

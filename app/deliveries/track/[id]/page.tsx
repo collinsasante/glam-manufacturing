@@ -9,14 +9,6 @@ import { Package, MapPin, User, Clock, CheckCircle2, Truck, ArrowLeft, Phone, Ma
 import { tables } from '@/lib/airtable';
 import { formatDateTime } from '@/lib/utils';
 
-// Required for static export with dynamic routes
-export function generateStaticParams() {
-  // Return empty array - pages will be generated on-demand client-side
-  return [];
-}
-
-export const dynamicParams = true;
-
 export default function DeliveryTrackingPage() {
   const router = useRouter();
   const params = useParams();
