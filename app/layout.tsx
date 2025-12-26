@@ -12,6 +12,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "GlamPack - Warehouse Management System",
   description: "Professional warehouse and supply chain management system",
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({
