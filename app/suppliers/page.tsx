@@ -52,7 +52,6 @@ export default function SuppliersPage() {
 
       setSuppliers(suppliersData);
     } catch (error) {
-      console.error('Error fetching suppliers:', error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +88,6 @@ export default function SuppliersPage() {
       setShowNewSupplierModal(false);
       fetchSuppliers();
     } catch (error) {
-      console.error('Error creating supplier:', error);
       alert('Failed to create supplier. Please try again.');
     }
   };

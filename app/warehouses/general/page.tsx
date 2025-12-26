@@ -63,7 +63,6 @@ export default function GeneralWarehousePage() {
         fields: r.fields,
       })));
     } catch (error) {
-      console.error('Error fetching warehouse data:', error);
     } finally {
       setLoading(false);
     }

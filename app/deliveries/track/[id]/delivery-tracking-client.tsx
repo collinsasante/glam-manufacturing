@@ -26,7 +26,6 @@ export function DeliveryTrackingClient() {
       const record = await tables.deliveries.find(deliveryId);
       setDelivery({ id: record.id, fields: record.fields });
     } catch (error) {
-      console.error('Error fetching delivery:', error);
     } finally {
       setLoading(false);
     }

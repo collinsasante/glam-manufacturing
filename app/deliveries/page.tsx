@@ -62,7 +62,6 @@ export default function DeliveriesPage() {
       setDeliveries(deliveryRecords.map(r => ({ id: r.id, fields: r.fields })));
       setRiders(riderRecords.map(r => ({ id: r.id, fields: r.fields })));
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -103,7 +102,6 @@ export default function DeliveriesPage() {
       setShowNewDeliveryModal(false);
       fetchDeliveriesData();
     } catch (error) {
-      console.error('Error creating delivery:', error);
       alert('Failed to schedule delivery. Please try again.');
     }
   };

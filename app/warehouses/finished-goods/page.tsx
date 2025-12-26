@@ -46,7 +46,6 @@ export default function FinishedGoodsWarehousePage() {
         setWarehouse({ id: warehouseRecords[0].id, fields: warehouseRecords[0].fields });
       }
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

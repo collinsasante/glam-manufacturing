@@ -31,7 +31,6 @@ export default function ProductionSchedulePage() {
 
       setSchedule(records.map(r => ({ id: r.id, fields: r.fields })));
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

@@ -56,7 +56,6 @@ export default function ManufacturingPage() {
 
       setManufacturingOrders(records.map(r => ({ id: r.id, fields: r.fields })));
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -90,7 +89,6 @@ export default function ManufacturingPage() {
       setShowNewOrderModal(false);
       fetchManufacturingData();
     } catch (error) {
-      console.error('Error creating order:', error);
       alert('Failed to create order. Please try again.');
     }
   };

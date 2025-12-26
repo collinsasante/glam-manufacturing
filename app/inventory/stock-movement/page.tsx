@@ -41,7 +41,6 @@ export default function StockMovementPage() {
   }, []);
 
   useEffect(() => {
-    console.log('formData changed (Stock Movement):', formData);
   }, [formData]);
 
   const fetchData = async () => {
@@ -75,7 +74,6 @@ export default function StockMovementPage() {
       setMovements(movementsData);
       setMaterials(materialsData);
     } catch (error) {
-      console.error('Error fetching stock movements:', error);
     } finally {
       setLoading(false);
     }
@@ -116,7 +114,6 @@ export default function StockMovementPage() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error adding movement:', error);
       alert('Failed to record movement. Please try again.');
     } finally {
       setSaving(false);
@@ -153,7 +150,6 @@ export default function StockMovementPage() {
       setSelectedMovement(null);
       fetchData();
     } catch (error) {
-      console.error('Error updating movement:', error);
       alert('Failed to update movement. Please try again.');
     } finally {
       setSaving(false);
@@ -176,7 +172,6 @@ export default function StockMovementPage() {
       setSelectedMovement(null);
       fetchData();
     } catch (error) {
-      console.error('Error deleting movement:', error);
       alert('Failed to delete movement. Please try again.');
     } finally {
       setSaving(false);
@@ -184,11 +179,8 @@ export default function StockMovementPage() {
   };
 
   const openEditModal = () => {
-    console.log('=== EDIT CLICKED (Stock Movement) ===');
-    console.log('selectedMovement:', selectedMovement);
 
     if (!selectedMovement) {
-      console.log('ERROR: No movement selected');
       return;
     }
 
@@ -203,10 +195,8 @@ export default function StockMovementPage() {
       date: selectedMovement.fields['Date'] || new Date().toISOString().split('T')[0],
     };
 
-    console.log('Setting formData to:', newFormData);
     setFormData(newFormData);
 
-    console.log('Closing detail modal, opening edit modal');
     setShowDetailModal(false);
     setShowEditModal(true);
   };

@@ -32,7 +32,6 @@ if (typeof window !== 'undefined') {
         }
       });
     } catch (error) {
-      console.error('Firebase initialization error:', error);
     }
   }
 }

@@ -47,7 +47,6 @@ export default function RawMaterialWarehousePage() {
         .all();
       setMaterials(materialRecords.map(r => ({ id: r.id, fields: r.fields })));
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

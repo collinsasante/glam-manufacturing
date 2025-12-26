@@ -37,7 +37,6 @@ export default function RawMaterialsPage() {
   }, []);
 
   useEffect(() => {
-    console.log('formData changed (Raw Materials):', formData);
   }, [formData]);
 
   const fetchMaterials = async () => {
@@ -57,7 +56,6 @@ export default function RawMaterialsPage() {
 
       setMaterials(materialsData);
     } catch (error) {
-      console.error('Error fetching materials:', error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +87,6 @@ export default function RawMaterialsPage() {
       });
       fetchMaterials();
     } catch (error) {
-      console.error('Error adding material:', error);
       alert('Failed to add material. Please try again.');
     } finally {
       setSaving(false);
@@ -120,7 +117,6 @@ export default function RawMaterialsPage() {
       setSelectedMaterial(null);
       fetchMaterials();
     } catch (error) {
-      console.error('Error updating material:', error);
       alert('Failed to update material. Please try again.');
     } finally{
       setSaving(false);
@@ -143,7 +139,6 @@ export default function RawMaterialsPage() {
       setSelectedMaterial(null);
       fetchMaterials();
     } catch (error) {
-      console.error('Error deleting material:', error);
       alert('Failed to delete material. Please try again.');
     } finally {
       setSaving(false);
@@ -151,11 +146,8 @@ export default function RawMaterialsPage() {
   };
 
   const openEditModal = () => {
-    console.log('=== EDIT CLICKED (Raw Materials) ===');
-    console.log('selectedMaterial:', selectedMaterial);
 
     if (!selectedMaterial) {
-      console.log('ERROR: No material selected');
       return;
     }
 
@@ -167,10 +159,8 @@ export default function RawMaterialsPage() {
       currentStock: String(selectedMaterial.fields['Current Stock'] || 0),
     };
 
-    console.log('Setting formData to:', newFormData);
     setFormData(newFormData);
 
-    console.log('Closing detail modal, opening edit modal');
     setShowDetailModal(false);
     setShowEditModal(true);
   };

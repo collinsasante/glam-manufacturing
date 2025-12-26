@@ -37,7 +37,6 @@ export default function FinishedGoodsPage() {
   }, []);
 
   useEffect(() => {
-    console.log('formData changed:', formData);
   }, [formData]);
 
   const fetchProducts = async () => {
@@ -57,7 +56,6 @@ export default function FinishedGoodsPage() {
 
       setProducts(productsData);
     } catch (error) {
-      console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +87,6 @@ export default function FinishedGoodsPage() {
       });
       fetchProducts();
     } catch (error) {
-      console.error('Error adding product:', error);
       alert('Failed to add product. Please try again.');
     } finally {
       setSaving(false);
@@ -120,7 +117,6 @@ export default function FinishedGoodsPage() {
       setSelectedProduct(null);
       fetchProducts();
     } catch (error) {
-      console.error('Error updating product:', error);
       alert('Failed to update product. Please try again.');
     } finally {
       setSaving(false);
@@ -143,7 +139,6 @@ export default function FinishedGoodsPage() {
       setSelectedProduct(null);
       fetchProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
       alert('Failed to delete product. Please try again.');
     } finally {
       setSaving(false);
@@ -151,11 +146,8 @@ export default function FinishedGoodsPage() {
   };
 
   const openEditModal = () => {
-    console.log('=== EDIT CLICKED ===');
-    console.log('selectedProduct:', selectedProduct);
 
     if (!selectedProduct) {
-      console.log('ERROR: No product selected');
       return;
     }
 
@@ -167,10 +159,8 @@ export default function FinishedGoodsPage() {
       status: (selectedProduct.fields['Status'] || 'Available') as 'Available' | 'Out of Stock' | 'Reserved' | 'Pending',
     };
 
-    console.log('Setting formData to:', newFormData);
     setFormData(newFormData);
 
-    console.log('Closing detail modal, opening edit modal');
     setShowDetailModal(false);
     setShowEditModal(true);
   };

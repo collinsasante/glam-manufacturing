@@ -71,7 +71,6 @@ export default function ReportsPage() {
         suppliers: suppliers.map(r => ({ id: r.id, fields: r.fields })),
       });
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

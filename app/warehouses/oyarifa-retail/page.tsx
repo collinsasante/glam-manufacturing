@@ -34,7 +34,6 @@ export default function OyarifaRetailWarehousePage() {
         setWarehouse({ id: records[0].id, fields: records[0].fields });
       }
     } catch (error) {
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }

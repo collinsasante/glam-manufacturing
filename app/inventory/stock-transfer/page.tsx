@@ -52,7 +52,6 @@ export default function StockTransferPage() {
   }, []);
 
   useEffect(() => {
-    console.log('formData changed (Stock Transfer):', formData);
   }, [formData]);
 
   const fetchData = async () => {
@@ -86,7 +85,6 @@ export default function StockTransferPage() {
       setTransfers(transfersData);
       setMaterials(materialsData);
     } catch (error) {
-      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -122,7 +120,6 @@ export default function StockTransferPage() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error creating transfer:', error);
       alert('Failed to create transfer. Please try again.');
     } finally {
       setSaving(false);
@@ -155,7 +152,6 @@ export default function StockTransferPage() {
       setSelectedTransfer(null);
       fetchData();
     } catch (error) {
-      console.error('Error updating transfer:', error);
       alert('Failed to update transfer. Please try again.');
     } finally {
       setSaving(false);
@@ -178,7 +174,6 @@ export default function StockTransferPage() {
       setSelectedTransfer(null);
       fetchData();
     } catch (error) {
-      console.error('Error deleting transfer:', error);
       alert('Failed to delete transfer. Please try again.');
     } finally {
       setSaving(false);
@@ -186,11 +181,8 @@ export default function StockTransferPage() {
   };
 
   const openEditModal = () => {
-    console.log('=== EDIT CLICKED (Stock Transfer) ===');
-    console.log('selectedTransfer:', selectedTransfer);
 
     if (!selectedTransfer) {
-      console.log('ERROR: No transfer selected');
       return;
     }
 
@@ -204,10 +196,8 @@ export default function StockTransferPage() {
       status: selectedTransfer.fields['Status'] || 'Pending',
     };
 
-    console.log('Setting formData to:', newFormData);
     setFormData(newFormData);
 
-    console.log('Closing detail modal, opening edit modal');
     setShowDetailModal(false);
     setShowEditModal(true);
   };
