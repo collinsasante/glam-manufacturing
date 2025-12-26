@@ -1,0 +1,170 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Airtable from 'airtable';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { hasPermission, Permission, UserRole } from '@/lib/rbac';
+import { stockTransferSchema } from '@/lib/validations';
+import { handleApiError } from '@/lib/errors';
+
+// Initialize Airtable
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_API_KEY,
+}).base(process.env.AIRTABLE_BASE_ID!);
+
+// GET /api/stock-transfer - List all stock transfers
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Verify authentication
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Missing token' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const decodedToken = await verifyIdToken(token);
+
+    // 2. Get user role
+    const role = (await getUserRole(decodedToken.uid)) as UserRole;
+
+    // 3. Check permissions
+    if (!hasPermission(role, Permission.VIEW_STOCK_TRANSFER)) {
+      return NextResponse.json(
+        { error: 'Forbidden - Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
+    // 4. Fetch stock transfers from Airtable
+    const records = await base('Stock Transfer')
+      .select({
+        sort: [{ field: 'Transfer Date', direction: 'desc' }],
+      })
+      .all();
+
+    // 5. Transform Airtable records to clean format
+    const transfers = records.map((record) => ({
+      id: record.id,
+      material: record.fields['Material'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      fromWarehouse: record.fields['From Warehouse'] || '',
+      toWarehouse: record.fields['To Warehouse'] || '',
+      transferDate: record.fields['Transfer Date'] || '',
+      status: record.fields['Status'] || '',
+      notes: record.fields['Notes'] || '',
+      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+    }));
+
+    return NextResponse.json({ data: transfers, count: transfers.length });
+  } catch (error: any) {
+    console.error('GET /api/stock-transfer error:', error);
+
+    // Handle Firebase auth errors
+    if (error.code?.startsWith('auth/')) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const message = handleApiError(error);
+    return NextResponse.json(
+      { error: message },
+      { status: error.statusCode || 500 }
+    );
+  }
+}
+
+// POST /api/stock-transfer - Create new stock transfer
+export async function POST(request: NextRequest) {
+  try {
+    // 1. Verify authentication
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Missing token' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const decodedToken = await verifyIdToken(token);
+
+    // 2. Get user role
+    const role = (await getUserRole(decodedToken.uid)) as UserRole;
+
+    // 3. Check permissions
+    if (!hasPermission(role, Permission.CREATE_STOCK_TRANSFER)) {
+      return NextResponse.json(
+        { error: 'Forbidden - Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
+    // 4. Parse and validate request body
+    const body = await request.json();
+    const validationResult = stockTransferSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: validationResult.error.issues.map((issue) => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
+    const validatedData = validationResult.data;
+
+    // 5. Create stock transfer in Airtable
+    const createdRecords = await base('Stock Transfer').create([
+      {
+        fields: {
+          'Material': validatedData.material || [],
+          'Quantity': validatedData.quantity,
+          'From Warehouse': validatedData.fromWarehouse,
+          'To Warehouse': validatedData.toWarehouse,
+          'Transfer Date': validatedData.transferDate || new Date().toISOString().split('T')[0],
+          'Status': validatedData.status || 'Pending',
+          'Notes': validatedData.notes || '',
+        },
+      },
+    ]);
+
+    const record = createdRecords[0];
+    const transfer = {
+      id: record.id,
+      material: record.fields['Material'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      fromWarehouse: record.fields['From Warehouse'] || '',
+      toWarehouse: record.fields['To Warehouse'] || '',
+      transferDate: record.fields['Transfer Date'] || '',
+      status: record.fields['Status'] || '',
+      notes: record.fields['Notes'] || '',
+      createdTime: record._rawJson.createdTime,
+    };
+
+    return NextResponse.json({ data: transfer }, { status: 201 });
+  } catch (error: any) {
+    console.error('POST /api/stock-transfer error:', error);
+
+    // Handle Firebase auth errors
+    if (error.code?.startsWith('auth/')) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const message = handleApiError(error);
+    return NextResponse.json(
+      { error: message },
+      { status: error.statusCode || 500 }
+    );
+  }
+}

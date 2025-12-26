@@ -1,4 +1,5 @@
 import { UserRole } from '@/types/user';
+export { UserRole } from '@/types/user';
 
 export enum Permission {
   // Suppliers

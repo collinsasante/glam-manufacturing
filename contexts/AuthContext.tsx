@@ -12,15 +12,23 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { UserRole } from '@/lib/rbac';
+import { apiClient } from '@/lib/api-client';
+
+interface AuthUser extends User {
+  role?: UserRole;
+  permissions?: string[];
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -31,13 +39,52 @@ const AuthContext = createContext<AuthContextType>({
   signInWithGoogle: async () => {},
   logout: async () => {},
   resetPassword: async () => {},
+  refreshUserRole: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Fetch user role from backend
+  const fetchUserRole = async (firebaseUser: User): Promise<AuthUser> => {
+    try {
+      const token = await firebaseUser.getIdToken();
+      const response = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch user role:', response.statusText);
+        return firebaseUser as AuthUser; // Return without role if fetch fails
+      }
+
+      const { data } = await response.json();
+      return {
+        ...firebaseUser,
+        role: data.role as UserRole,
+        permissions: data.permissions || [],
+      };
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return firebaseUser as AuthUser; // Return without role if error occurs
+    }
+  };
+
+  const refreshUserRole = async () => {
+    if (!user) return;
+
+    try {
+      const updatedUser = await fetchUserRole(user);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Error refreshing user role:', error);
+    }
+  };
 
   useEffect(() => {
     if (!auth) {
@@ -45,8 +92,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch role when user signs in
+        const userWithRole = await fetchUserRole(firebaseUser);
+        setUser(userWithRole);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
@@ -102,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, logout, resetPassword, refreshUserRole }}>
       {children}
     </AuthContext.Provider>
   );
