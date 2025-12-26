@@ -15,18 +15,16 @@ const firebaseConfig = {
 // Only initialize Firebase in browser environment with valid config
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
+let analytics: Analytics | undefined;
 
 if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
   // Initialize Firebase only if it hasn't been initialized
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
-}
 
-// Initialize Analytics only in browser and if supported
-let analytics;
-if (typeof window !== 'undefined') {
+  // Initialize Analytics only if supported
   isSupported().then((supported) => {
-    if (supported) {
+    if (supported && app) {
       analytics = getAnalytics(app);
     }
   });

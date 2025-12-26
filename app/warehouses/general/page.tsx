@@ -284,7 +284,6 @@ export default function GeneralWarehousePage() {
                   <th className="pb-3">Specification</th>
                   <th className="pb-3 text-right">Stock Level</th>
                   <th className="pb-3 text-right">Unit Cost</th>
-                  <th className="pb-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -311,11 +310,6 @@ export default function GeneralWarehousePage() {
                         {material.fields['Unit Cost']
                           ? formatCurrency(material.fields['Unit Cost'])
                           : '-'}
-                      </td>
-                      <td className="py-3">
-                        <Badge variant={isLowStock ? 'warning' : 'success'}>
-                          {isLowStock ? 'Low Stock' : 'In Stock'}
-                        </Badge>
                       </td>
                     </tr>
                   );

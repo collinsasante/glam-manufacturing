@@ -229,7 +229,6 @@ export default function FinishedGoodsWarehousePage() {
                   <th className="pb-3 text-right">Available Qty</th>
                   <th className="pb-3 text-right">Price</th>
                   <th className="pb-3 text-right">Total Value</th>
-                  <th className="pb-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -258,21 +257,6 @@ export default function FinishedGoodsWarehousePage() {
                       </td>
                       <td className="py-4 text-right font-medium text-slate-900">
                         {formatCurrency(totalValue)}
-                      </td>
-                      <td className="py-4">
-                        <Badge
-                          variant={
-                            product.fields['Status'] === 'Available'
-                              ? 'success'
-                              : product.fields['Status'] === 'Out of Stock'
-                              ? 'destructive'
-                              : product.fields['Status'] === 'Reserved'
-                              ? 'warning'
-                              : 'secondary'
-                          }
-                        >
-                          {product.fields['Status'] || 'Unknown'}
-                        </Badge>
                       </td>
                     </tr>
                   );

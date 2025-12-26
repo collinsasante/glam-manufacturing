@@ -320,21 +320,12 @@ export default function FinishedGoodsPage() {
                   <th className="pb-3 text-right">Available Qty</th>
                   <th className="pb-3 text-right">Unit Price</th>
                   <th className="pb-3 text-right">Total Value</th>
-                  <th className="pb-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredProducts.map((product) => {
                   const qty = product.fields['Available Quantity'] || 0;
                   const price = product.fields['Price'] || 0;
-                  const status = product.fields['Status'] || 'Available';
-
-                  const statusColors = {
-                    'Available': 'bg-slate-200 text-slate-900',
-                    'Out of Stock': 'bg-red-100 text-red-800',
-                    'Reserved': 'bg-slate-200 text-slate-900',
-                    'Pending': 'bg-slate-200 text-slate-900',
-                  };
 
                   return (
                     <tr
@@ -356,11 +347,6 @@ export default function FinishedGoodsPage() {
                       </td>
                       <td className="py-4 text-right font-medium text-slate-900">
                         {formatCurrency(qty * price)}
-                      </td>
-                      <td className="py-4">
-                        <Badge className={statusColors[status as keyof typeof statusColors]}>
-                          {status}
-                        </Badge>
                       </td>
                     </tr>
                   );

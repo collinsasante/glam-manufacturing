@@ -199,64 +199,6 @@ export default function DeliveriesPage() {
         </Card>
       </div>
 
-      {/* Delivery Methods */}
-      <Card className="border-slate-400">
-        <CardHeader>
-          <CardTitle>Delivery Methods</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-lg border-2 border-slate-300 bg-slate-100 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-600 text-white">
-                  <Bike className="h-5 w-5" />
-                </div>
-                <h3 className="font-semibold text-slate-900">Bikes</h3>
-              </div>
-              <p className="text-sm text-slate-800 mb-3">
-                Fast delivery for local orders within the city
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-700">Quick delivery</span>
-                <Badge variant="success">Active</Badge>
-              </div>
-            </div>
-
-            <div className="rounded-lg border-2 border-slate-300 bg-slate-100 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white">
-                  <Users className="h-5 w-5" />
-                </div>
-                <h3 className="font-semibold text-slate-900">3rd Party Riders</h3>
-              </div>
-              <p className="text-sm text-slate-800 mb-3">
-                Partner delivery services for extended coverage
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-700">Extended reach</span>
-                <Badge variant="success">Active</Badge>
-              </div>
-            </div>
-
-            <div className="rounded-lg border-2 border-slate-300 bg-slate-100 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-600 text-white">
-                  <Truck className="h-5 w-5" />
-                </div>
-                <h3 className="font-semibold text-slate-900">Trucks & Vans</h3>
-              </div>
-              <p className="text-sm text-slate-800 mb-3">
-                Bulk deliveries and long-distance transportation
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-700">Bulk delivery</span>
-                <Badge variant="success">Active</Badge>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Recent Deliveries */}
       <Card>
         <CardHeader>

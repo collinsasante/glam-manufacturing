@@ -31,6 +31,8 @@ export default function StockMovementPage() {
     quantity: '',
     unitCost: '',
     reason: '',
+    from: '',
+    to: '',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -93,6 +95,8 @@ export default function StockMovementPage() {
             'Unit Cost': parseFloat(formData.unitCost) || 0,
             'Total Value': totalValue,
             'Reason': formData.reason,
+            'From': formData.from,
+            'To': formData.to,
             'Date': formData.date,
           },
         },
@@ -106,6 +110,8 @@ export default function StockMovementPage() {
         quantity: '',
         unitCost: '',
         reason: '',
+        from: '',
+        to: '',
         date: new Date().toISOString().split('T')[0],
       });
       fetchData();
@@ -134,6 +140,8 @@ export default function StockMovementPage() {
             'Unit Cost': parseFloat(formData.unitCost) || 0,
             'Total Value': totalValue,
             'Reason': formData.reason,
+            'From': formData.from,
+            'To': formData.to,
             'Date': formData.date,
           },
         },
@@ -190,6 +198,8 @@ export default function StockMovementPage() {
       quantity: String(selectedMovement.fields['Quantity'] || 0),
       unitCost: String(selectedMovement.fields['Unit Cost'] || 0),
       reason: selectedMovement.fields['Reason'] || '',
+      from: selectedMovement.fields['From'] || '',
+      to: selectedMovement.fields['To'] || '',
       date: selectedMovement.fields['Date'] || new Date().toISOString().split('T')[0],
     };
 
@@ -356,12 +366,11 @@ export default function StockMovementPage() {
                 <tr className="border-b border-slate-200 text-left text-sm font-medium text-slate-600">
                   <th className="pb-3">Batch Number</th>
                   <th className="pb-3">Date</th>
-                  <th className="pb-3">Type</th>
+                  <th className="pb-3">Transaction</th>
                   <th className="pb-3">Reason</th>
                   <th className="pb-3 text-right">Quantity</th>
                   <th className="pb-3 text-right">Unit Cost</th>
                   <th className="pb-3 text-right">Total Value</th>
-                  <th className="pb-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -413,11 +422,6 @@ export default function StockMovementPage() {
                         {movement.fields['Total Value']
                           ? formatCurrency(movement.fields['Total Value'])
                           : '-'}
-                      </td>
-                      <td className="py-4">
-                        <Badge variant={isIncoming ? 'success' : 'secondary'}>
-                          {isIncoming ? 'Received' : 'Issued'}
-                        </Badge>
                       </td>
                     </tr>
                   );
@@ -519,6 +523,34 @@ export default function StockMovementPage() {
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 className="mt-1"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="from" className="text-sm font-medium text-slate-900">
+                  From
+                </Label>
+                <Input
+                  id="from"
+                  placeholder="Source location"
+                  value={formData.from}
+                  onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="to" className="text-sm font-medium text-slate-900">
+                  To
+                </Label>
+                <Input
+                  id="to"
+                  placeholder="Destination location"
+                  value={formData.to}
+                  onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
             </div>
 
             <div>

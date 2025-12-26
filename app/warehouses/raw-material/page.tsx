@@ -211,7 +211,6 @@ export default function RawMaterialWarehousePage() {
                     <th className="pb-3">Spec</th>
                     <th className="pb-3 text-right">Stock</th>
                     <th className="pb-3 text-right">Unit Cost</th>
-                    <th className="pb-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -239,15 +238,6 @@ export default function RawMaterialWarehousePage() {
                           {material.fields['Unit Cost']
                             ? formatCurrency(material.fields['Unit Cost'])
                             : '-'}
-                        </td>
-                        <td className="py-3">
-                          <Badge
-                            variant={
-                              isOutOfStock ? 'destructive' : isLowStock ? 'warning' : 'success'
-                            }
-                          >
-                            {isOutOfStock ? 'Out' : isLowStock ? 'Low' : 'OK'}
-                          </Badge>
                         </td>
                       </tr>
                     );
