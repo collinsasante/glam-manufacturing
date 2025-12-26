@@ -9,19 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Search, Filter, Download } from 'lucide-react';
-import { tables } from '@/lib/airtable';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { exportToCSV } from '@/lib/export';
 import type { FinishedGood } from '@/types';
 
 export default function FinishedGoodsPage() {
-  const [products, setProducts] = useState<FinishedGood[]>([]);
+  const { user } = useAuth();
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<FinishedGood | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -33,50 +35,75 @@ export default function FinishedGoodsPage() {
   });
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (user) {
+      fetchProducts();
+    }
+  }, [user]);
 
   useEffect(() => {
   }, [formData]);
 
   const fetchProducts = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const records = await tables.finishedGoodsWarehouse
-        .select({
-          maxRecords: 100,
-          sort: [{ field: 'Product Name', direction: 'asc' }],
-        })
-        .all();
+      const token = await user.getIdToken();
 
-      const productsData = records.map((record) => ({
-        id: record.id,
-        fields: record.fields as FinishedGood['fields'],
-      }));
+      const response = await fetch('/api/finished-goods', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      setProducts(productsData);
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to load products');
+        return;
+      }
+
+      const { data } = await response.json();
+      setProducts(data);
     } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to load products');
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddProduct = async () => {
+    if (!user) {
+      toast.error('You must be logged in to add products');
+      return;
+    }
+
     try {
       setSaving(true);
-      await tables.finishedGoodsWarehouse.create([
-        {
-          fields: {
-            'Product Name': formData.productName,
-            'Pack Size/Notes': formData.packSize,
-            'Available Quantity': parseFloat(formData.availableQty) || 0,
-            'Price': parseFloat(formData.price) || 0,
-            'Status': formData.status,
-          },
-        },
-      ]);
+      const token = await user.getIdToken();
 
-      alert('Product added successfully!');
+      const response = await fetch('/api/finished-goods', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productName: formData.productName,
+          packSize: formData.packSize,
+          availableQuantity: parseFloat(formData.availableQty) || 0,
+          price: parseFloat(formData.price) || 0,
+          status: formData.status,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to add product');
+        return;
+      }
+
+      toast.success('Product added successfully!');
       setShowAddModal(false);
       setFormData({
         productName: '',
@@ -87,76 +114,101 @@ export default function FinishedGoodsPage() {
       });
       fetchProducts();
     } catch (error) {
-      alert('Failed to add product. Please try again.');
+      console.error('Error adding product:', error);
+      toast.error('Failed to add product. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleEditProduct = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !user) return;
 
     try {
       setSaving(true);
-      await tables.finishedGoodsWarehouse.update([
-        {
-          id: selectedProduct.id,
-          fields: {
-            'Product Name': formData.productName,
-            'Pack Size/Notes': formData.packSize,
-            'Available Quantity': parseFloat(formData.availableQty) || 0,
-            'Price': parseFloat(formData.price) || 0,
-            'Status': formData.status,
-          },
-        },
-      ]);
+      const token = await user.getIdToken();
 
-      alert('Product updated successfully!');
+      const response = await fetch(`/api/finished-goods/${selectedProduct.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productName: formData.productName,
+          packSize: formData.packSize,
+          availableQuantity: parseFloat(formData.availableQty) || 0,
+          price: parseFloat(formData.price) || 0,
+          status: formData.status,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to update product');
+        return;
+      }
+
+      toast.success('Product updated successfully!');
       setShowEditModal(false);
       setShowDetailModal(false);
       setSelectedProduct(null);
       fetchProducts();
     } catch (error) {
-      alert('Failed to update product. Please try again.');
+      console.error('Error updating product:', error);
+      toast.error('Failed to update product. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteProduct = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !user) return;
 
-    if (!confirm(`Are you sure you want to delete "${selectedProduct.fields['Product Name']}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete "${selectedProduct.productName}"? This action cannot be undone.`)) {
       return;
     }
 
     try {
       setSaving(true);
-      await tables.finishedGoodsWarehouse.destroy([selectedProduct.id]);
+      const token = await user.getIdToken();
 
-      alert('Product deleted successfully!');
+      const response = await fetch(`/api/finished-goods/${selectedProduct.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to delete product');
+        return;
+      }
+
+      toast.success('Product deleted successfully!');
       setShowDetailModal(false);
       setSelectedProduct(null);
       fetchProducts();
     } catch (error) {
-      alert('Failed to delete product. Please try again.');
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const openEditModal = () => {
-
     if (!selectedProduct) {
       return;
     }
 
     const newFormData = {
-      productName: selectedProduct.fields['Product Name'],
-      packSize: selectedProduct.fields['Pack Size/Notes'] || '',
-      availableQty: String(selectedProduct.fields['Available Quantity'] || 0),
-      price: String(selectedProduct.fields['Price'] || 0),
-      status: (selectedProduct.fields['Status'] || 'Available') as 'Available' | 'Out of Stock' | 'Reserved' | 'Pending',
+      productName: selectedProduct.productName,
+      packSize: selectedProduct.packSize || '',
+      availableQty: String(selectedProduct.availableQuantity || 0),
+      price: String(selectedProduct.price || 0),
+      status: (selectedProduct.status || 'Available') as 'Available' | 'Out of Stock' | 'Reserved' | 'Pending',
     };
 
     setFormData(newFormData);
@@ -165,25 +217,35 @@ export default function FinishedGoodsPage() {
     setShowEditModal(true);
   };
 
-  const handleRowClick = (product: FinishedGood) => {
+  const handleRowClick = (product: any) => {
     setSelectedProduct(product);
     setShowDetailModal(true);
   };
 
   const filteredProducts = products.filter((product) =>
-    product.fields['Product Name']
+    product.productName
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase())
   );
 
   const totalValue = products.reduce(
     (sum, p) =>
-      sum + (p.fields['Available Quantity'] || 0) * (p.fields['Price'] || 0),
+      sum + (p.availableQuantity || 0) * (p.price || 0),
     0
   );
 
   const totalItems = products.length;
-  const outOfStockItems = products.filter((p) => (p.fields['Available Quantity'] || 0) === 0).length;
+  const outOfStockItems = products.filter((p) => (p.availableQuantity || 0) === 0).length;
+
+  if (!user) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Please log in to view finished goods</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -260,7 +322,7 @@ export default function FinishedGoodsPage() {
                 variant="outline"
                 size="sm"
                 className="gap-2"
-                onClick={() => alert('Filter options: By Status, By Price Range, By Pack Size')}
+                onClick={() => toast.info('Filter options: By Status, By Price Range, By Pack Size')}
               >
                 <Filter className="h-4 w-4" />
                 Filter
@@ -271,14 +333,15 @@ export default function FinishedGoodsPage() {
                 className="gap-2"
                 onClick={() => {
                   const exportData = filteredProducts.map(p => ({
-                    'Product Name': p.fields['Product Name'],
-                    'Pack Size': p.fields['Pack Size/Notes'] || '-',
-                    'Available Quantity': p.fields['Available Quantity'] || 0,
-                    'Price': p.fields['Price'] || 0,
-                    'Total Value': (p.fields['Available Quantity'] || 0) * (p.fields['Price'] || 0),
-                    'Status': p.fields['Status'] || 'Available',
+                    'Product Name': p.productName,
+                    'Pack Size': p.packSize || '-',
+                    'Available Quantity': p.availableQuantity || 0,
+                    'Price': p.price || 0,
+                    'Total Value': (p.availableQuantity || 0) * (p.price || 0),
+                    'Status': p.status || 'Available',
                   }));
                   exportToCSV(exportData, 'finished_goods');
+                  toast.success('Data exported successfully');
                 }}
               >
                 <Download className="h-4 w-4" />
@@ -314,8 +377,8 @@ export default function FinishedGoodsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredProducts.map((product) => {
-                  const qty = product.fields['Available Quantity'] || 0;
-                  const price = product.fields['Price'] || 0;
+                  const qty = product.availableQuantity || 0;
+                  const price = product.price || 0;
 
                   return (
                     <tr
@@ -324,10 +387,10 @@ export default function FinishedGoodsPage() {
                       className="text-sm hover:bg-slate-50 cursor-pointer transition-colors"
                     >
                       <td className="py-4 font-medium text-slate-900">
-                        {product.fields['Product Name']}
+                        {product.productName}
                       </td>
                       <td className="py-4 text-slate-600">
-                        {product.fields['Pack Size/Notes'] || '-'}
+                        {product.packSize || '-'}
                       </td>
                       <td className="py-4 text-right font-medium text-slate-900">
                         {qty.toLocaleString()}
@@ -479,18 +542,17 @@ export default function FinishedGoodsPage() {
               <div className="rounded-lg border border-slate-200 p-5">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{selectedProduct.fields['Product Name']}</h3>
-                    {selectedProduct.fields['Pack Size/Notes'] && (
-                      <p className="text-sm text-slate-500 mt-1">{selectedProduct.fields['Pack Size/Notes']}</p>
+                    <h3 className="text-lg font-semibold text-slate-900">{selectedProduct.productName}</h3>
+                    {selectedProduct.packSize && (
+                      <p className="text-sm text-slate-500 mt-1">{selectedProduct.packSize}</p>
                     )}
                   </div>
-                  <Badge className={{
-                    'Available': 'bg-slate-200 text-slate-900',
-                    'Out of Stock': 'bg-red-100 text-red-800',
-                    'Reserved': 'bg-slate-200 text-slate-900',
-                    'Pending': 'bg-slate-200 text-slate-900',
-                  }[selectedProduct.fields['Status'] || 'Available']}>
-                    {selectedProduct.fields['Status'] || 'Available'}
+                  <Badge className={
+                    selectedProduct.status === 'Out of Stock'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-slate-200 text-slate-900'
+                  }>
+                    {selectedProduct.status || 'Available'}
                   </Badge>
                 </div>
 
@@ -498,21 +560,21 @@ export default function FinishedGoodsPage() {
                   <div className="flex justify-between py-2 border-b border-slate-100">
                     <span className="text-sm font-medium text-slate-600">Available Quantity</span>
                     <span className="text-sm font-semibold text-slate-900">
-                      {(selectedProduct.fields['Available Quantity'] || 0).toLocaleString()} units
+                      {(selectedProduct.availableQuantity || 0).toLocaleString()} units
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-slate-100">
                     <span className="text-sm font-medium text-slate-600">Unit Price</span>
                     <span className="text-sm font-semibold text-slate-900">
-                      {formatCurrency(selectedProduct.fields['Price'] || 0)}
+                      {formatCurrency(selectedProduct.price || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between py-3 mt-2 bg-slate-50 rounded-lg px-3">
                     <span className="text-base font-semibold text-slate-900">Total Value</span>
                     <span className="text-xl font-bold text-slate-900">
                       {formatCurrency(
-                        (selectedProduct.fields['Available Quantity'] || 0) *
-                        (selectedProduct.fields['Price'] || 0)
+                        (selectedProduct.availableQuantity || 0) *
+                        (selectedProduct.price || 0)
                       )}
                     </span>
                   </div>

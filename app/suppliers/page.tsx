@@ -8,14 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Plus, Search, Filter, Mail, Phone, Globe, Building2 } from 'lucide-react';
-import { tables } from '@/lib/airtable';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import type { Supplier } from '@/types';
 
 export default function SuppliersPage() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const { user } = useAuth();
+  const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<any | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showNewSupplierModal, setShowNewSupplierModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,45 +34,72 @@ export default function SuppliersPage() {
   });
 
   useEffect(() => {
-    fetchSuppliers();
-  }, []);
+    if (user) {
+      fetchSuppliers();
+    }
+  }, [user]);
 
   const fetchSuppliers = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const records = await tables.suppliers
-        .select({
-          maxRecords: 100,
-          sort: [{ field: 'Supplier Name', direction: 'asc' }],
-        })
-        .all();
+      const token = await user.getIdToken();
 
-      const suppliersData = records.map((record) => ({
-        id: record.id,
-        fields: record.fields as Supplier['fields'],
-      }));
+      const response = await fetch('/api/suppliers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      setSuppliers(suppliersData);
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to load suppliers');
+        return;
+      }
+
+      const { data } = await response.json();
+      setSuppliers(data);
     } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      toast.error('Failed to load suppliers');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSubmitSupplier = async () => {
+    if (!user) {
+      toast.error('You must be logged in to create suppliers');
+      return;
+    }
+
     try {
-      await tables.suppliers.create({
-        'Supplier Name': formData.supplierName,
-        'Supplier Type': formData.supplierType,
-        'Status': formData.status,
-        'Contact Person': formData.contactPerson,
-        'Email': formData.email,
-        'Phone': formData.phone,
-        'Address': formData.address,
-        'Website': formData.website,
-        'Payment Terms': formData.paymentTerms,
-        'Notes': formData.notes
+      const token = await user.getIdToken();
+
+      const response = await fetch('/api/suppliers', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          supplierName: formData.supplierName,
+          contactPerson: formData.contactPerson,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          website: formData.website,
+        }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to create supplier');
+        return;
+      }
+
+      toast.success('Supplier created successfully');
 
       // Reset form
       setFormData({
@@ -88,23 +117,30 @@ export default function SuppliersPage() {
       setShowNewSupplierModal(false);
       fetchSuppliers();
     } catch (error) {
-      alert('Failed to create supplier. Please try again.');
+      console.error('Error creating supplier:', error);
+      toast.error('Failed to create supplier. Please try again.');
     }
   };
 
   const filteredSuppliers = suppliers.filter((supplier) =>
-    supplier.fields['Supplier Name']
+    supplier.supplierName
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase())
   );
 
-  const activeSuppliers = suppliers.filter(
-    (s) => s.fields['Status'] === 'Active'
-  ).length;
+  const activeSuppliers = suppliers.length; // API doesn't return status field yet
 
-  const factoryCount = suppliers.filter(
-    (s) => s.fields['Supplier Type'] === 'Factory'
-  ).length;
+  const factoryCount = 0; // API doesn't return supplier type field yet
+
+  if (!user) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-center">
+          <p className="text-slate-600">Please log in to view suppliers</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -214,71 +250,55 @@ export default function SuppliersPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-slate-900">
-                          {supplier.fields['Supplier Name']}
+                          {supplier.supplierName}
                         </h3>
                         <p className="text-xs text-slate-500">
-                          {supplier.fields['Supplier ID']}
+                          Supplier
                         </p>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        supplier.fields['Status'] === 'Active'
-                          ? 'success'
-                          : 'secondary'
-                      }
-                    >
-                      {supplier.fields['Status'] || 'Unknown'}
-                    </Badge>
-                    {supplier.fields['Supplier Type'] && (
-                      <Badge variant="outline">
-                        {supplier.fields['Supplier Type']}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {supplier.fields['Contact Person'] && (
+                  {supplier.contactPerson && (
                     <div className="text-sm text-slate-600">
                       <span className="font-medium">Contact: </span>
-                      {supplier.fields['Contact Person']}
+                      {supplier.contactPerson}
                     </div>
                   )}
 
-                  {supplier.fields['Phone'] && (
+                  {supplier.phone && (
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Phone className="h-4 w-4" />
-                      {supplier.fields['Phone']}
+                      {supplier.phone}
                     </div>
                   )}
 
-                  {supplier.fields['Email'] && (
+                  {supplier.email && (
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Mail className="h-4 w-4" />
-                      {supplier.fields['Email']}
+                      {supplier.email}
                     </div>
                   )}
 
-                  {supplier.fields['Website'] && (
+                  {supplier.website && (
                     <div className="flex items-center gap-2 text-sm text-slate-700">
                       <Globe className="h-4 w-4" />
                       <a
-                        href={supplier.fields['Website']}
+                        href={supplier.website}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:underline"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         Visit Website
                       </a>
                     </div>
                   )}
 
-                  {supplier.fields['Address'] && (
+                  {supplier.address && (
                     <div className="text-xs text-slate-500 mt-2 border-t border-slate-100 pt-2">
-                      {supplier.fields['Address']}
+                      {supplier.address}
                     </div>
                   )}
                 </CardContent>
@@ -461,9 +481,9 @@ export default function SuppliersPage() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-slate-900">
-                      {selectedSupplier.fields['Supplier Name']}
+                      {selectedSupplier.supplierName}
                     </h2>
-                    <p className="text-slate-500">{selectedSupplier.fields['Supplier ID'] || 'Supplier Details'}</p>
+                    <p className="text-slate-500">Supplier Details</p>
                   </div>
                 </div>
                 <Button variant="outline" onClick={() => setShowDetailModal(false)}>Close</Button>
@@ -472,60 +492,40 @@ export default function SuppliersPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-slate-500">Status</p>
-                    <Badge variant={selectedSupplier.fields['Status'] === 'Active' ? 'success' : 'secondary'}>
-                      {selectedSupplier.fields['Status'] || 'Unknown'}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-slate-500">Supplier Type</p>
-                    <Badge variant="outline">{selectedSupplier.fields['Supplier Type'] || 'N/A'}</Badge>
-                  </div>
-                  <div className="space-y-1">
                     <p className="text-sm text-slate-500">Contact Person</p>
-                    <p className="font-semibold text-slate-900">{selectedSupplier.fields['Contact Person'] || 'N/A'}</p>
+                    <p className="font-semibold text-slate-900">{selectedSupplier.contactPerson || 'N/A'}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-slate-500">Phone</p>
-                    <p className="font-semibold text-slate-900">{selectedSupplier.fields['Phone'] || 'N/A'}</p>
+                    <p className="font-semibold text-slate-900">{selectedSupplier.phone || 'N/A'}</p>
                   </div>
-                  {selectedSupplier.fields['Email'] && (
+                  {selectedSupplier.email && (
                     <div className="space-y-1 col-span-2">
                       <p className="text-sm text-slate-500">Email</p>
-                      <p className="font-semibold text-slate-900">{selectedSupplier.fields['Email']}</p>
+                      <p className="font-semibold text-slate-900">{selectedSupplier.email}</p>
                     </div>
                   )}
-                  {selectedSupplier.fields['Website'] && (
+                  {selectedSupplier.website && (
                     <div className="space-y-1 col-span-2">
                       <p className="text-sm text-slate-500">Website</p>
-                      <a href={selectedSupplier.fields['Website']} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">
-                        {selectedSupplier.fields['Website']}
+                      <a href={selectedSupplier.website} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">
+                        {selectedSupplier.website}
                       </a>
                     </div>
                   )}
-                  {selectedSupplier.fields['Address'] && (
+                  {selectedSupplier.address && (
                     <div className="space-y-1 col-span-2">
                       <p className="text-sm text-slate-500">Address</p>
-                      <p className="font-semibold text-slate-900">{selectedSupplier.fields['Address']}</p>
+                      <p className="font-semibold text-slate-900">{selectedSupplier.address}</p>
                     </div>
                   )}
-                </div>
-
-                {Object.keys(selectedSupplier.fields).length > 0 && (
-                  <div className="mt-6 border-t border-slate-200 pt-4">
-                    <h3 className="font-semibold text-slate-900 mb-3">All Details</h3>
-                    <div className="space-y-2">
-                      {Object.entries(selectedSupplier.fields).map(([key, value]: [string, any]) => (
-                        <div key={key} className="flex justify-between py-2 border-b border-slate-100">
-                          <span className="text-sm text-slate-500">{key}</span>
-                          <span className="text-sm font-medium text-slate-900">
-                            {value !== null && value !== undefined ? String(value) : 'N/A'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="space-y-1 col-span-2">
+                    <p className="text-sm text-slate-500">Created</p>
+                    <p className="font-semibold text-slate-900">
+                      {new Date(selectedSupplier.createdTime).toLocaleDateString()}
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
