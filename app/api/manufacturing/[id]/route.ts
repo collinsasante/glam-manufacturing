@@ -47,11 +47,11 @@ export async function GET(
     // 5. Transform to clean format
     const mfg = {
       id: record.id,
-      batchNumber: record.fields['Batch Number'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantityProduced: record.fields['Quantity Produced'] || 0,
-      rawMaterialsUsed: record.fields['Raw Materials Used'] || [],
-      productionDate: record.fields['Production Date'] || '',
+      manufacturingId: record.fields['Manufacturing ID'] || '',
+      product: record.fields['Product'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      productionLine: record.fields['Production Line'] || '',
+      createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
@@ -109,7 +109,7 @@ export async function PATCH(
     const role = (await getUserRole(decodedToken.uid)) as UserRole;
 
     // 3. Check permissions
-    if (!hasPermission(role, Permission.UPDATE_MANUFACTURING)) {
+    if (!hasPermission(role, Permission.UPDATE_MANUFACTURING_ORDER)) {
       return NextResponse.json(
         { error: 'Forbidden - Insufficient permissions' },
         { status: 403 }
@@ -137,20 +137,20 @@ export async function PATCH(
 
     // 5. Build fields object (only include provided fields)
     const fields: Record<string, any> = {};
-    if (validatedData.batchNumber !== undefined) {
-      fields['Batch Number'] = validatedData.batchNumber;
+    if (validatedData.manufacturingId !== undefined) {
+      fields['Manufacturing ID'] = validatedData.manufacturingId;
     }
-    if (validatedData.productName !== undefined) {
-      fields['Product Name'] = validatedData.productName;
+    if (validatedData.product !== undefined) {
+      fields['Product'] = validatedData.product ? [validatedData.product] : undefined;
     }
-    if (validatedData.quantityProduced !== undefined) {
-      fields['Quantity Produced'] = validatedData.quantityProduced;
+    if (validatedData.quantity !== undefined) {
+      fields['Quantity'] = validatedData.quantity;
     }
-    if (validatedData.rawMaterialsUsed !== undefined) {
-      fields['Raw Materials Used'] = validatedData.rawMaterialsUsed;
+    if (validatedData.productionLine !== undefined) {
+      fields['Production Line'] = validatedData.productionLine;
     }
-    if (validatedData.productionDate !== undefined) {
-      fields['Production Date'] = validatedData.productionDate;
+    if (validatedData.createdOn !== undefined) {
+      fields['Created on'] = validatedData.createdOn;
     }
     if (validatedData.status !== undefined) {
       fields['Status'] = validatedData.status;
@@ -170,11 +170,11 @@ export async function PATCH(
     const record = updatedRecords[0];
     const mfg = {
       id: record.id,
-      batchNumber: record.fields['Batch Number'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantityProduced: record.fields['Quantity Produced'] || 0,
-      rawMaterialsUsed: record.fields['Raw Materials Used'] || [],
-      productionDate: record.fields['Production Date'] || '',
+      manufacturingId: record.fields['Manufacturing ID'] || '',
+      product: record.fields['Product'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      productionLine: record.fields['Production Line'] || '',
+      createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
@@ -232,7 +232,7 @@ export async function DELETE(
     const role = (await getUserRole(decodedToken.uid)) as UserRole;
 
     // 3. Check permissions
-    if (!hasPermission(role, Permission.DELETE_MANUFACTURING)) {
+    if (!hasPermission(role, Permission.DELETE_MANUFACTURING_ORDER)) {
       return NextResponse.json(
         { error: 'Forbidden - Insufficient permissions' },
         { status: 403 }

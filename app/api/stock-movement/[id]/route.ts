@@ -47,12 +47,13 @@ export async function GET(
     const movement = {
       id: record.id,
       material: record.fields['Material'] || [],
-      movementType: record.fields['Movement Type'] || '',
+      transactionType: record.fields['Transaction Type'] || '',
       quantity: record.fields['Quantity'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
+      unitCost: record.fields['Unit Cost'] || 0,
+      reason: record.fields['Reason'] || '',
+      from: record.fields['From'] || '',
+      to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      reference: record.fields['Reference'] || '',
-      notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 

@@ -48,12 +48,12 @@ export async function GET(
     const transfer = {
       id: record.id,
       material: record.fields['Material'] || [],
-      quantity: record.fields['Quantity'] || 0,
+      quantityTransferred: record.fields['Quantity Transferred'] || 0,
       fromWarehouse: record.fields['From Warehouse'] || '',
       toWarehouse: record.fields['To Warehouse'] || '',
-      transferDate: record.fields['Transfer Date'] || '',
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      notes: record.fields['Notes'] || '',
+      remarks: record.fields['Remarks'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 
@@ -140,8 +140,8 @@ export async function PATCH(
     if (validatedData.material !== undefined) {
       fields['Material'] = validatedData.material;
     }
-    if (validatedData.quantity !== undefined) {
-      fields['Quantity'] = validatedData.quantity;
+    if (validatedData.quantityTransferred !== undefined) {
+      fields['Quantity'] = validatedData.quantityTransferred;
     }
     if (validatedData.fromWarehouse !== undefined) {
       fields['From Warehouse'] = validatedData.fromWarehouse;
@@ -149,14 +149,14 @@ export async function PATCH(
     if (validatedData.toWarehouse !== undefined) {
       fields['To Warehouse'] = validatedData.toWarehouse;
     }
-    if (validatedData.transferDate !== undefined) {
-      fields['Transfer Date'] = validatedData.transferDate;
+    if (validatedData.date !== undefined) {
+      fields['Transfer Date'] = validatedData.date;
     }
     if (validatedData.status !== undefined) {
       fields['Status'] = validatedData.status;
     }
-    if (validatedData.notes !== undefined) {
-      fields['Notes'] = validatedData.notes;
+    if (validatedData.remarks !== undefined) {
+      fields['Notes'] = validatedData.remarks;
     }
 
     // 6. Update stock transfer in Airtable
@@ -171,12 +171,12 @@ export async function PATCH(
     const transfer = {
       id: record.id,
       material: record.fields['Material'] || [],
-      quantity: record.fields['Quantity'] || 0,
+      quantityTransferred: record.fields['Quantity Transferred'] || 0,
       fromWarehouse: record.fields['From Warehouse'] || '',
       toWarehouse: record.fields['To Warehouse'] || '',
-      transferDate: record.fields['Transfer Date'] || '',
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      notes: record.fields['Notes'] || '',
+      remarks: record.fields['Remarks'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 

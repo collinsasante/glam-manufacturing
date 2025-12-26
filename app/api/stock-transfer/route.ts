@@ -47,12 +47,12 @@ export async function GET(request: NextRequest) {
     const transfers = records.map((record) => ({
       id: record.id,
       material: record.fields['Material'] || [],
-      quantity: record.fields['Quantity'] || 0,
+      quantityTransferred: record.fields['Quantity Transferred'] || 0,
       fromWarehouse: record.fields['From Warehouse'] || '',
       toWarehouse: record.fields['To Warehouse'] || '',
-      transferDate: record.fields['Transfer Date'] || '',
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      notes: record.fields['Notes'] || '',
+      remarks: record.fields['Remarks'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     }));
 
@@ -126,12 +126,12 @@ export async function POST(request: NextRequest) {
       {
         fields: {
           'Material': validatedData.material || [],
-          'Quantity': validatedData.quantity,
+          'Quantity Transferred': validatedData.quantityTransferred,
           'From Warehouse': validatedData.fromWarehouse,
           'To Warehouse': validatedData.toWarehouse,
-          'Transfer Date': validatedData.transferDate || new Date().toISOString().split('T')[0],
+          'Date': validatedData.date || new Date().toISOString().split('T')[0],
           'Status': validatedData.status || 'Pending',
-          'Notes': validatedData.notes || '',
+          'Remarks': validatedData.remarks || '',
         },
       },
     ]);
@@ -140,12 +140,12 @@ export async function POST(request: NextRequest) {
     const transfer = {
       id: record.id,
       material: record.fields['Material'] || [],
-      quantity: record.fields['Quantity'] || 0,
+      quantityTransferred: record.fields['Quantity Transferred'] || 0,
       fromWarehouse: record.fields['From Warehouse'] || '',
       toWarehouse: record.fields['To Warehouse'] || '',
-      transferDate: record.fields['Transfer Date'] || '',
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      notes: record.fields['Notes'] || '',
+      remarks: record.fields['Remarks'] || '',
       createdTime: record._rawJson.createdTime,
     };
 

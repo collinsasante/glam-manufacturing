@@ -30,16 +30,16 @@ export const finishedGoodSchema = z.object({
   status: z.enum(['Available', 'Out of Stock', 'Reserved', 'Pending']).optional(),
 });
 
-// Stock Movement validation
+// Stock Movement validation (matches Airtable 'Stock Movement' table)
 export const stockMovementSchema = z.object({
-  material: z.string().min(1, 'Material is required'),
-  transactionType: z.enum(['In', 'Out']),
-  quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
-  unitCost: z.number().min(0, 'Unit cost must be positive').optional(),
-  reason: z.enum(['New Stock', 'Stock Adjustment', 'Manufacturing Order']).optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-  date: z.string().optional(),
+  material: z.string().min(1, 'Material is required'), // 'Material' field (link)
+  transactionType: z.enum(['In', 'Out']), // 'Transaction Type' field
+  quantity: z.number().min(0.01, 'Quantity must be greater than 0'), // 'Quantity' field
+  unitCost: z.number().min(0, 'Unit cost must be positive').optional(), // 'Unit Cost' field
+  reason: z.string().optional(), // 'Reason' field
+  from: z.string().optional(), // 'From' field
+  to: z.string().optional(), // 'To' field
+  date: z.string().optional(), // 'Date' field
 });
 
 // Stock Transfer validation (matches Airtable 'Stock Transfer' table)

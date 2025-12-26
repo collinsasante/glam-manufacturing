@@ -39,18 +39,18 @@ export async function GET(request: NextRequest) {
     // 4. Fetch manufacturing records from Airtable
     const records = await base('Manufacturing')
       .select({
-        sort: [{ field: 'Production Date', direction: 'desc' }],
+        sort: [{ field: 'Created on', direction: 'desc' }],
       })
       .all();
 
     // 5. Transform Airtable records to clean format
     const manufacturing = records.map((record) => ({
       id: record.id,
-      batchNumber: record.fields['Batch Number'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantityProduced: record.fields['Quantity Produced'] || 0,
-      rawMaterialsUsed: record.fields['Raw Materials Used'] || [],
-      productionDate: record.fields['Production Date'] || '',
+      manufacturingId: record.fields['Manufacturing ID'] || '',
+      product: record.fields['Product'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      productionLine: record.fields['Production Line'] || '',
+      createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const role = (await getUserRole(decodedToken.uid)) as UserRole;
 
     // 3. Check permissions
-    if (!hasPermission(role, Permission.CREATE_MANUFACTURING)) {
+    if (!hasPermission(role, Permission.CREATE_MANUFACTURING_ORDER)) {
       return NextResponse.json(
         { error: 'Forbidden - Insufficient permissions' },
         { status: 403 }
@@ -125,12 +125,12 @@ export async function POST(request: NextRequest) {
     const createdRecords = await base('Manufacturing').create([
       {
         fields: {
-          'Batch Number': validatedData.batchNumber || '',
-          'Product Name': validatedData.productName || [],
-          'Quantity Produced': validatedData.quantityProduced || 0,
-          'Raw Materials Used': validatedData.rawMaterialsUsed || [],
-          'Production Date': validatedData.productionDate || new Date().toISOString().split('T')[0],
-          'Status': validatedData.status || 'In Progress',
+          'Manufacturing ID': validatedData.manufacturingId || '',
+          'Product': validatedData.product ? [validatedData.product] : undefined,
+          'Quantity': validatedData.quantity || 0,
+          'Production Line': validatedData.productionLine || '',
+          'Created on': validatedData.createdOn || new Date().toISOString().split('T')[0],
+          'Status': validatedData.status || 'Pending',
           'Notes': validatedData.notes || '',
         },
       },
@@ -139,11 +139,11 @@ export async function POST(request: NextRequest) {
     const record = createdRecords[0];
     const mfg = {
       id: record.id,
-      batchNumber: record.fields['Batch Number'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantityProduced: record.fields['Quantity Produced'] || 0,
-      rawMaterialsUsed: record.fields['Raw Materials Used'] || [],
-      productionDate: record.fields['Production Date'] || '',
+      manufacturingId: record.fields['Manufacturing ID'] || '',
+      product: record.fields['Product'] || [],
+      quantity: record.fields['Quantity'] || 0,
+      productionLine: record.fields['Production Line'] || '',
+      createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record._rawJson.createdTime,

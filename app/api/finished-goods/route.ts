@@ -47,14 +47,10 @@ export async function GET(request: NextRequest) {
     const goods = records.map((record) => ({
       id: record.id,
       productName: record.fields['Product Name'] || '',
-      sku: record.fields['SKU'] || '',
-      category: record.fields['Category'] || '',
-      currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
-      sellingPrice: record.fields['Selling Price'] || 0,
-      costPrice: record.fields['Cost Price'] || 0,
+      packSize: record.fields['Pack Size/Notes'] || '',
+      availableQuantity: record.fields['Available Quantity'] || 0,
+      price: record.fields['Price'] || 0,
+      status: record.fields['Status'] || 'Available',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     }));
 
@@ -128,14 +124,10 @@ export async function POST(request: NextRequest) {
       {
         fields: {
           'Product Name': validatedData.productName,
-          'SKU': validatedData.sku || '',
-          'Category': validatedData.category || '',
-          'Current Stock': validatedData.currentStock || 0,
-          'Unit': validatedData.unit || '',
-          'Reorder Level': validatedData.reorderLevel || 0,
-          'Warehouse': validatedData.warehouse || '',
-          'Selling Price': validatedData.sellingPrice || 0,
-          'Cost Price': validatedData.costPrice || 0,
+          'Pack Size/Notes': validatedData.packSize || '',
+          'Available Quantity': validatedData.availableQuantity || 0,
+          'Price': validatedData.price || 0,
+          'Status': validatedData.status || 'Available',
         },
       },
     ]);
@@ -144,14 +136,10 @@ export async function POST(request: NextRequest) {
     const good = {
       id: record.id,
       productName: record.fields['Product Name'] || '',
-      sku: record.fields['SKU'] || '',
-      category: record.fields['Category'] || '',
-      currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
-      sellingPrice: record.fields['Selling Price'] || 0,
-      costPrice: record.fields['Cost Price'] || 0,
+      packSize: record.fields['Pack Size/Notes'] || '',
+      availableQuantity: record.fields['Available Quantity'] || 0,
+      price: record.fields['Price'] || 0,
+      status: record.fields['Status'] || 'Available',
       createdTime: record._rawJson.createdTime,
     };
 

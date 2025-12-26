@@ -48,14 +48,10 @@ export async function GET(
     const good = {
       id: record.id,
       productName: record.fields['Product Name'] || '',
-      sku: record.fields['SKU'] || '',
-      category: record.fields['Category'] || '',
-      currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
-      sellingPrice: record.fields['Selling Price'] || 0,
-      costPrice: record.fields['Cost Price'] || 0,
+      packSize: record.fields['Pack Size/Notes'] || '',
+      availableQuantity: record.fields['Available Quantity'] || 0,
+      price: record.fields['Price'] || 0,
+      status: record.fields['Status'] || 'Available',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 
@@ -142,29 +138,17 @@ export async function PATCH(
     if (validatedData.productName !== undefined) {
       fields['Product Name'] = validatedData.productName;
     }
-    if (validatedData.sku !== undefined) {
-      fields['SKU'] = validatedData.sku;
+    if (validatedData.packSize !== undefined) {
+      fields['Pack Size/Notes'] = validatedData.packSize;
     }
-    if (validatedData.category !== undefined) {
-      fields['Category'] = validatedData.category;
+    if (validatedData.availableQuantity !== undefined) {
+      fields['Available Quantity'] = validatedData.availableQuantity;
     }
-    if (validatedData.currentStock !== undefined) {
-      fields['Current Stock'] = validatedData.currentStock;
+    if (validatedData.price !== undefined) {
+      fields['Price'] = validatedData.price;
     }
-    if (validatedData.unit !== undefined) {
-      fields['Unit'] = validatedData.unit;
-    }
-    if (validatedData.reorderLevel !== undefined) {
-      fields['Reorder Level'] = validatedData.reorderLevel;
-    }
-    if (validatedData.warehouse !== undefined) {
-      fields['Warehouse'] = validatedData.warehouse;
-    }
-    if (validatedData.sellingPrice !== undefined) {
-      fields['Selling Price'] = validatedData.sellingPrice;
-    }
-    if (validatedData.costPrice !== undefined) {
-      fields['Cost Price'] = validatedData.costPrice;
+    if (validatedData.status !== undefined) {
+      fields['Status'] = validatedData.status;
     }
 
     // 6. Update finished good in Airtable
@@ -179,14 +163,10 @@ export async function PATCH(
     const good = {
       id: record.id,
       productName: record.fields['Product Name'] || '',
-      sku: record.fields['SKU'] || '',
-      category: record.fields['Category'] || '',
-      currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
-      sellingPrice: record.fields['Selling Price'] || 0,
-      costPrice: record.fields['Cost Price'] || 0,
+      packSize: record.fields['Pack Size/Notes'] || '',
+      availableQuantity: record.fields['Available Quantity'] || 0,
+      price: record.fields['Price'] || 0,
+      status: record.fields['Status'] || 'Available',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 

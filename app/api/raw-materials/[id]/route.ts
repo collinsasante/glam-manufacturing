@@ -48,13 +48,10 @@ export async function GET(
     const material = {
       id: record.id,
       materialName: record.fields['Material Name'] || '',
-      category: record.fields['Category'] || '',
-      supplier: record.fields['Supplier'] || [],
+      specification: record.fields['Specification'] || 'Clear',
+      unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 
@@ -141,26 +138,17 @@ export async function PATCH(
     if (validatedData.materialName !== undefined) {
       fields['Material Name'] = validatedData.materialName;
     }
-    if (validatedData.category !== undefined) {
-      fields['Category'] = validatedData.category;
+    if (validatedData.specification !== undefined) {
+      fields['Specification'] = validatedData.specification;
     }
-    if (validatedData.supplier !== undefined) {
-      fields['Supplier'] = validatedData.supplier;
+    if (validatedData.unitOfMeasurement !== undefined) {
+      fields['Unit of Measurement'] = validatedData.unitOfMeasurement;
     }
     if (validatedData.unitCost !== undefined) {
       fields['Unit Cost'] = validatedData.unitCost;
     }
     if (validatedData.currentStock !== undefined) {
       fields['Current Stock'] = validatedData.currentStock;
-    }
-    if (validatedData.unit !== undefined) {
-      fields['Unit'] = validatedData.unit;
-    }
-    if (validatedData.reorderLevel !== undefined) {
-      fields['Reorder Level'] = validatedData.reorderLevel;
-    }
-    if (validatedData.warehouse !== undefined) {
-      fields['Warehouse'] = validatedData.warehouse;
     }
 
     // 6. Update raw material in Airtable
@@ -175,13 +163,10 @@ export async function PATCH(
     const material = {
       id: record.id,
       materialName: record.fields['Material Name'] || '',
-      category: record.fields['Category'] || '',
-      supplier: record.fields['Supplier'] || [],
+      specification: record.fields['Specification'] || 'Clear',
+      unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
 

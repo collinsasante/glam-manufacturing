@@ -47,13 +47,10 @@ export async function GET(request: NextRequest) {
     const materials = records.map((record) => ({
       id: record.id,
       materialName: record.fields['Material Name'] || '',
-      category: record.fields['Category'] || '',
-      supplier: record.fields['Supplier'] || [],
+      specification: record.fields['Specification'] || 'Clear',
+      unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     }));
 
@@ -127,13 +124,10 @@ export async function POST(request: NextRequest) {
       {
         fields: {
           'Material Name': validatedData.materialName,
-          'Category': validatedData.category || '',
-          'Supplier': validatedData.supplier || [],
+          'Specification': validatedData.specification || 'Clear',
+          'Unit of Measurement': validatedData.unitOfMeasurement || '',
           'Unit Cost': validatedData.unitCost || 0,
           'Current Stock': validatedData.currentStock || 0,
-          'Unit': validatedData.unit || '',
-          'Reorder Level': validatedData.reorderLevel || 0,
-          'Warehouse': validatedData.warehouse || '',
         },
       },
     ]);
@@ -142,13 +136,10 @@ export async function POST(request: NextRequest) {
     const material = {
       id: record.id,
       materialName: record.fields['Material Name'] || '',
-      category: record.fields['Category'] || '',
-      supplier: record.fields['Supplier'] || [],
+      specification: record.fields['Specification'] || 'Clear',
+      unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      unit: record.fields['Unit'] || '',
-      reorderLevel: record.fields['Reorder Level'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
       createdTime: record._rawJson.createdTime,
     };
 

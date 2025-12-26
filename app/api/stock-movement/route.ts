@@ -47,12 +47,13 @@ export async function GET(request: NextRequest) {
     const movements = records.map((record) => ({
       id: record.id,
       material: record.fields['Material'] || [],
-      movementType: record.fields['Movement Type'] || '',
+      transactionType: record.fields['Transaction Type'] || '',
       quantity: record.fields['Quantity'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
+      unitCost: record.fields['Unit Cost'] || 0,
+      reason: record.fields['Reason'] || '',
+      from: record.fields['From'] || '',
+      to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      reference: record.fields['Reference'] || '',
-      notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     }));
 
@@ -125,13 +126,14 @@ export async function POST(request: NextRequest) {
     const createdRecords = await base('Stock Movement').create([
       {
         fields: {
-          'Material': validatedData.material || [],
-          'Movement Type': validatedData.movementType,
+          'Material': validatedData.material ? [validatedData.material] : undefined,
+          'Transaction Type': validatedData.transactionType,
           'Quantity': validatedData.quantity,
-          'Warehouse': validatedData.warehouse || '',
+          'Unit Cost': validatedData.unitCost || 0,
+          'Reason': validatedData.reason || '',
+          'From': validatedData.from || '',
+          'To': validatedData.to || '',
           'Date': validatedData.date || new Date().toISOString().split('T')[0],
-          'Reference': validatedData.reference || '',
-          'Notes': validatedData.notes || '',
         },
       },
     ]);
@@ -140,12 +142,13 @@ export async function POST(request: NextRequest) {
     const movement = {
       id: record.id,
       material: record.fields['Material'] || [],
-      movementType: record.fields['Movement Type'] || '',
+      transactionType: record.fields['Transaction Type'] || '',
       quantity: record.fields['Quantity'] || 0,
-      warehouse: record.fields['Warehouse'] || '',
+      unitCost: record.fields['Unit Cost'] || 0,
+      reason: record.fields['Reason'] || '',
+      from: record.fields['From'] || '',
+      to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      reference: record.fields['Reference'] || '',
-      notes: record.fields['Notes'] || '',
       createdTime: record._rawJson.createdTime,
     };
 
