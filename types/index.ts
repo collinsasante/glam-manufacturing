@@ -42,6 +42,8 @@ export interface StockMovement {
     'Date'?: string;
     'Unit Cost'?: number;
     'Total Value'?: number;
+    'From'?: string;
+    'To'?: string;
     'From Warehouse'?: string[];
     'To Warehouse'?: string[];
     'Documentation'?: string;
