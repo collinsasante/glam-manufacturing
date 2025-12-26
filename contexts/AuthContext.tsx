@@ -40,12 +40,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('=== AuthProvider useEffect ===');
+    console.log('Auth instance:', auth);
+    console.log('Auth exists:', !!auth);
+
     if (!auth) {
+      console.error('❌ Auth is undefined in AuthProvider!');
+      console.log('This means Firebase was not initialized properly.');
       setLoading(false);
       return;
     }
 
+    console.log('✅ Auth instance found, setting up auth state listener...');
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user ? `User logged in: ${user.email}` : 'No user logged in');
       setUser(user);
       setLoading(false);
     });
@@ -54,10 +63,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (!auth) throw new Error('Firebase not initialized');
+    console.log('=== Sign In Attempt ===');
+    console.log('Auth exists:', !!auth);
+    if (!auth) {
+      console.error('❌ Cannot sign in: Firebase not initialized');
+      throw new Error('Firebase not initialized');
+    }
     try {
+      console.log('Attempting to sign in with email:', email);
       await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ Sign in successful');
     } catch (error: any) {
+      console.error('❌ Sign in error:', error.code, error.message);
       throw new Error(error.message);
     }
   };
