@@ -42,39 +42,40 @@ export const stockMovementSchema = z.object({
   date: z.string().optional(),
 });
 
-// Stock Transfer validation
+// Stock Transfer validation (matches Airtable 'Stock Transfer' table)
 export const stockTransferSchema = z.object({
-  material: z.string().min(1, 'Material is required'),
-  quantity: z.number().min(0.01, 'Quantity must be greater than 0'),
-  fromWarehouse: z.string().min(1, 'Source warehouse is required'),
-  toWarehouse: z.string().min(1, 'Destination warehouse is required'),
-  date: z.string().optional(),
-  remarks: z.string().optional(),
-  status: z.enum(['Pending', 'In Transit', 'Completed', 'Cancelled']).optional(),
+  batchNumber: z.string().optional(), // 'Batch Number' field
+  material: z.string().min(1, 'Material is required'), // 'Material' field (link)
+  quantityTransferred: z.number().min(0.01, 'Quantity must be greater than 0'), // 'Quantity Transferred' field
+  fromWarehouse: z.string().min(1, 'Source warehouse is required'), // 'From Warehouse' field (link)
+  toWarehouse: z.string().min(1, 'Destination warehouse is required'), // 'To Warehouse' field (link)
+  date: z.string().optional(), // 'Date' field
+  remarks: z.string().optional(), // 'Remarks' field
+  status: z.enum(['Pending', 'In Transit', 'Completed', 'Cancelled']).optional(), // 'Status' field
 }).refine((data) => data.fromWarehouse !== data.toWarehouse, {
   message: 'Source and destination warehouses must be different',
   path: ['toWarehouse'],
 });
 
-// Delivery validation
+// Delivery validation (matches Airtable 'Deliveries' table)
 export const deliverySchema = z.object({
-  customer: z.string().min(1, 'Customer name is required'),
-  customerContact: z.string().optional(),
-  deliveryAddress: z.string().min(1, 'Delivery address is required'),
-  totalItems: z.number().min(1, 'At least one item is required').optional(),
-  totalAmount: z.number().min(0, 'Amount must be positive').optional(),
-  rider: z.string().optional(),
-  scheduledDate: z.string().optional(),
+  deliveryId: z.string().optional(), // 'Delivery ID' field
+  customer: z.string().min(1, 'Customer name is required'), // 'Customer' field
+  totalStops: z.number().optional(), // 'Total Stops' field
+  rider: z.string().optional(), // 'Rider' field (link to Riders table)
+  date: z.string().optional(), // 'Date' field
+  status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional(), // 'Status' field
   notes: z.string().optional(),
 });
 
-// Manufacturing Order validation
+// Manufacturing Order validation (matches Airtable 'Manufacturing' table)
 export const manufacturingOrderSchema = z.object({
-  productName: z.string().min(1, 'Product name is required'),
-  quantity: z.number().min(1, 'Quantity must be at least 1'),
-  startDate: z.string().optional(),
-  dueDate: z.string().optional(),
-  status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional(),
+  manufacturingId: z.string().optional(), // 'Manufacturing ID' field
+  product: z.string().min(1, 'Product is required'), // 'Product' field (link)
+  quantity: z.number().min(1, 'Quantity must be at least 1'), // 'Quantity' field
+  productionLine: z.string().optional(), // 'Production Line' field
+  createdOn: z.string().optional(), // 'Created on' field
+  status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional(), // 'Status' field
   notes: z.string().optional(),
 });
 

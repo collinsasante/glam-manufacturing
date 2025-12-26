@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     // 4. Fetch deliveries from Airtable
     const records = await base('Deliveries')
       .select({
-        sort: [{ field: 'Delivery Date', direction: 'desc' }],
+        sort: [{ field: 'Date', direction: 'desc' }],
       })
       .all();
 
@@ -47,14 +47,11 @@ export async function GET(request: NextRequest) {
     const deliveries = records.map((record) => ({
       id: record.id,
       deliveryId: record.fields['Delivery ID'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantity: record.fields['Quantity'] || 0,
-      destination: record.fields['Destination'] || '',
-      recipientName: record.fields['Recipient Name'] || '',
-      recipientPhone: record.fields['Recipient Phone'] || '',
-      deliveryDate: record.fields['Delivery Date'] || '',
+      customer: record.fields['Customer'] || '',
+      totalStops: record.fields['Total Stops'] || 0,
+      rider: record.fields['Rider'] || [],
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      trackingNumber: record.fields['Tracking Number'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     }));
@@ -129,14 +126,11 @@ export async function POST(request: NextRequest) {
       {
         fields: {
           'Delivery ID': validatedData.deliveryId || '',
-          'Product Name': validatedData.productName || [],
-          'Quantity': validatedData.quantity || 0,
-          'Destination': validatedData.destination || '',
-          'Recipient Name': validatedData.recipientName || '',
-          'Recipient Phone': validatedData.recipientPhone || '',
-          'Delivery Date': validatedData.deliveryDate || new Date().toISOString().split('T')[0],
+          'Customer': validatedData.customer,
+          'Total Stops': validatedData.totalStops || 0,
+          'Rider': validatedData.rider ? [validatedData.rider] : undefined,
+          'Date': validatedData.date || new Date().toISOString().split('T')[0],
           'Status': validatedData.status || 'Pending',
-          'Tracking Number': validatedData.trackingNumber || '',
           'Notes': validatedData.notes || '',
         },
       },
@@ -146,14 +140,11 @@ export async function POST(request: NextRequest) {
     const delivery = {
       id: record.id,
       deliveryId: record.fields['Delivery ID'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantity: record.fields['Quantity'] || 0,
-      destination: record.fields['Destination'] || '',
-      recipientName: record.fields['Recipient Name'] || '',
-      recipientPhone: record.fields['Recipient Phone'] || '',
-      deliveryDate: record.fields['Delivery Date'] || '',
+      customer: record.fields['Customer'] || '',
+      totalStops: record.fields['Total Stops'] || 0,
+      rider: record.fields['Rider'] || [],
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      trackingNumber: record.fields['Tracking Number'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record._rawJson.createdTime,
     };

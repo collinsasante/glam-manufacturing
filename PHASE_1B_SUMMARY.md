@@ -161,10 +161,21 @@ Follow the complete guide: [CLOUDFLARE_SETUP_GUIDE.md](CLOUDFLARE_SETUP_GUIDE.md
 
 ## 🐛 Known Build Issues
 
-### Issue 1: Validation Schema Mismatch
-**Error**: Property 'deliveryId' does not exist on type...
-**Cause**: Validation schemas don't match API route expectations
-**Fix**: Update [lib/validations.ts](lib/validations.ts) to match Airtable field names
+### Issue 1: API Route Field Mappings (IN PROGRESS ⏳)
+**Status**: Partially fixed - Deliveries routes updated ✅
+**Remaining**: Need to update field mappings in:
+- Finished Goods API routes (uses SKU, Current Stock, Selling Price, Cost Price)
+- Raw Materials API routes (uses Category, Unit Cost, Current Stock, Unit, Reorder Level, Warehouse)
+- Stock Movement API routes (uses Movement Type, Reference)
+- Stock Transfer API routes (uses Batch Number, Quantity Transferred)
+- Manufacturing API routes (uses Manufacturing ID, Product, Production Line, Created on)
+
+**Pattern to follow (Deliveries - COMPLETED)**:
+1. Update validation schema in [lib/validations.ts](lib/validations.ts:60-68) ✅
+2. Update POST route field mapping ✅
+3. Update GET routes response mapping ✅
+4. Update PATCH route field mapping ✅
+5. Fix sort field names ✅
 
 ### Issue 2: Async params (FIXED ✅)
 **Status**: Resolved - all routes now properly await params

@@ -48,14 +48,11 @@ export async function GET(
     const delivery = {
       id: record.id,
       deliveryId: record.fields['Delivery ID'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantity: record.fields['Quantity'] || 0,
-      destination: record.fields['Destination'] || '',
-      recipientName: record.fields['Recipient Name'] || '',
-      recipientPhone: record.fields['Recipient Phone'] || '',
-      deliveryDate: record.fields['Delivery Date'] || '',
+      customer: record.fields['Customer'] || '',
+      totalStops: record.fields['Total Stops'] || 0,
+      rider: record.fields['Rider'] || [],
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      trackingNumber: record.fields['Tracking Number'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
@@ -143,29 +140,20 @@ export async function PATCH(
     if (validatedData.deliveryId !== undefined) {
       fields['Delivery ID'] = validatedData.deliveryId;
     }
-    if (validatedData.productName !== undefined) {
-      fields['Product Name'] = validatedData.productName;
+    if (validatedData.customer !== undefined) {
+      fields['Customer'] = validatedData.customer;
     }
-    if (validatedData.quantity !== undefined) {
-      fields['Quantity'] = validatedData.quantity;
+    if (validatedData.totalStops !== undefined) {
+      fields['Total Stops'] = validatedData.totalStops;
     }
-    if (validatedData.destination !== undefined) {
-      fields['Destination'] = validatedData.destination;
+    if (validatedData.rider !== undefined) {
+      fields['Rider'] = validatedData.rider ? [validatedData.rider] : undefined;
     }
-    if (validatedData.recipientName !== undefined) {
-      fields['Recipient Name'] = validatedData.recipientName;
-    }
-    if (validatedData.recipientPhone !== undefined) {
-      fields['Recipient Phone'] = validatedData.recipientPhone;
-    }
-    if (validatedData.deliveryDate !== undefined) {
-      fields['Delivery Date'] = validatedData.deliveryDate;
+    if (validatedData.date !== undefined) {
+      fields['Date'] = validatedData.date;
     }
     if (validatedData.status !== undefined) {
       fields['Status'] = validatedData.status;
-    }
-    if (validatedData.trackingNumber !== undefined) {
-      fields['Tracking Number'] = validatedData.trackingNumber;
     }
     if (validatedData.notes !== undefined) {
       fields['Notes'] = validatedData.notes;
@@ -183,14 +171,11 @@ export async function PATCH(
     const delivery = {
       id: record.id,
       deliveryId: record.fields['Delivery ID'] || '',
-      productName: record.fields['Product Name'] || [],
-      quantity: record.fields['Quantity'] || 0,
-      destination: record.fields['Destination'] || '',
-      recipientName: record.fields['Recipient Name'] || '',
-      recipientPhone: record.fields['Recipient Phone'] || '',
-      deliveryDate: record.fields['Delivery Date'] || '',
+      customer: record.fields['Customer'] || '',
+      totalStops: record.fields['Total Stops'] || 0,
+      rider: record.fields['Rider'] || [],
+      date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
-      trackingNumber: record.fields['Tracking Number'] || '',
       notes: record.fields['Notes'] || '',
       createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
     };
