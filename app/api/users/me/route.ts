@@ -1,7 +1,9 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyIdToken, getUserRole, adminDb } from '@/lib/firebase-admin';
 import { UserRole } from '@/lib/rbac';
 import { handleApiError } from '@/lib/errors';
+export const dynamic = 'force-dynamic';
 
 // GET /api/users/me - Get current user profile and role
 export async function GET(request: NextRequest) {

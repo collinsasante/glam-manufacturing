@@ -1,8 +1,10 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import Airtable from 'airtable';
 import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { handleApiError } from '@/lib/errors';
+export const dynamic = 'force-dynamic';
 
 // Initialize Airtable
 const base = new Airtable({

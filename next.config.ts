@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export', // Static export for Cloudflare Pages
+  // Cloudflare Pages supports Next.js API routes via Node.js runtime
+  // No need for static export - API routes require server-side execution
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Required for Cloudflare Pages
   },
 };
 
