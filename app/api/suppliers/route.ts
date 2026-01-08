@@ -1,16 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
+import { airtable } from '@/lib/airtable-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { supplierSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
-
-// Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
+export const runtime = 'edge';
 
 // GET /api/suppliers - List all suppliers
 export async function GET(request: NextRequest) {
@@ -39,11 +35,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Fetch suppliers from Airtable
-    const records = await base('Suppliers')
-      .select({
-        sort: [{ field: 'Supplier Name', direction: 'asc' }],
-      })
-      .all();
+    const records = await airtable.list('Suppliers', {
+      sort: [{ field: 'Supplier Name', direction: 'asc' }],
+    });
 
     // 5. Transform Airtable records to clean format
     const suppliers = records.map((record) => ({
@@ -54,7 +48,7 @@ export async function GET(request: NextRequest) {
       email: record.fields['Email'] || '',
       address: record.fields['Address'] || '',
       website: record.fields['Website'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     }));
 
     return NextResponse.json({ data: suppliers, count: suppliers.length });
@@ -123,20 +117,15 @@ export async function POST(request: NextRequest) {
     const validatedData = validationResult.data;
 
     // 5. Create supplier in Airtable
-    const createdRecords = await base('Suppliers').create([
-      {
-        fields: {
-          'Supplier Name': validatedData.supplierName,
-          'Contact Person': validatedData.contactPerson || '',
-          'Phone': validatedData.phone || '',
-          'Email': validatedData.email || '',
-          'Address': validatedData.address || '',
-          'Website': validatedData.website || '',
-        },
-      },
-    ]);
+    const record = await airtable.create('Suppliers', {
+      'Supplier Name': validatedData.supplierName,
+      'Contact Person': validatedData.contactPerson || '',
+      'Phone': validatedData.phone || '',
+      'Email': validatedData.email || '',
+      'Address': validatedData.address || '',
+      'Website': validatedData.website || '',
+    });
 
-    const record = createdRecords[0];
     const supplier = {
       id: record.id,
       supplierName: record.fields['Supplier Name'] || '',
@@ -145,7 +134,7 @@ export async function POST(request: NextRequest) {
       email: record.fields['Email'] || '',
       address: record.fields['Address'] || '',
       website: record.fields['Website'] || '',
-      createdTime: record._rawJson.createdTime,
+      createdTime: record.createdTime,
     };
 
     return NextResponse.json({ data: supplier }, { status: 201 });

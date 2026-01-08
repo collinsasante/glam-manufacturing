@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { stockMovementSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/stock-movement - List all stock movements
 export async function GET(request: NextRequest) {
@@ -39,11 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Fetch stock movements from Airtable
-    const records = await base('Stock Movement')
-      .select({
+    const records = await airtable.list('Stock Movement', {
         sort: [{ field: 'Date', direction: 'desc' }],
-      })
-      .all();
+      });
 
     // 5. Transform Airtable records to clean format
     const movements = records.map((record) => ({
@@ -56,7 +52,7 @@ export async function GET(request: NextRequest) {
       from: record.fields['From'] || '',
       to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     }));
 
     return NextResponse.json({ data: movements, count: movements.length });
@@ -125,22 +121,16 @@ export async function POST(request: NextRequest) {
     const validatedData = validationResult.data;
 
     // 5. Create stock movement in Airtable
-    const createdRecords = await base('Stock Movement').create([
-      {
-        fields: {
-          'Material': validatedData.material ? [validatedData.material] : undefined,
-          'Transaction Type': validatedData.transactionType,
-          'Quantity': validatedData.quantity,
-          'Unit Cost': validatedData.unitCost || 0,
-          'Reason': validatedData.reason || '',
-          'From': validatedData.from || '',
-          'To': validatedData.to || '',
-          'Date': validatedData.date || new Date().toISOString().split('T')[0],
-        },
-      },
-    ]);
-
-    const record = createdRecords[0];
+    const record = await airtable.create('Stock Movement', {
+      'Material': validatedData.material ? [validatedData.material] : undefined,
+      'Transaction Type': validatedData.transactionType,
+      'Quantity': validatedData.quantity,
+      'Unit Cost': validatedData.unitCost || 0,
+      'Reason': validatedData.reason || '',
+      'From': validatedData.from || '',
+      'To': validatedData.to || '',
+      'Date': validatedData.date || new Date().toISOString().split('T')[0],
+    });
     const movement = {
       id: record.id,
       material: record.fields['Material'] || [],
@@ -151,7 +141,7 @@ export async function POST(request: NextRequest) {
       from: record.fields['From'] || '',
       to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      createdTime: record._rawJson.createdTime,
+      createdTime: record.createdTime,
     };
 
     return NextResponse.json({ data: movement }, { status: 201 });

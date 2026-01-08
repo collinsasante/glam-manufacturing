@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { finishedGoodSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/finished-goods/[id] - Get single finished good
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch finished good from Airtable
-    const record = await base('Finished Goods').find(id);
+    const record = await airtable.get('Finished Goods', id);
 
     // 5. Transform to clean format
     const good = {
@@ -54,7 +52,7 @@ export async function GET(
       availableQuantity: record.fields['Available Quantity'] || 0,
       price: record.fields['Price'] || 0,
       status: record.fields['Status'] || 'Available',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: good });
@@ -154,14 +152,7 @@ export async function PATCH(
     }
 
     // 6. Update finished good in Airtable
-    const updatedRecords = await base('Finished Goods').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Finished Goods', id, fields);
     const good = {
       id: record.id,
       productName: record.fields['Product Name'] || '',
@@ -169,7 +160,7 @@ export async function PATCH(
       availableQuantity: record.fields['Available Quantity'] || 0,
       price: record.fields['Price'] || 0,
       status: record.fields['Status'] || 'Available',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: good });
@@ -232,7 +223,7 @@ export async function DELETE(
     }
 
     // 4. Delete finished good from Airtable
-    await base('Finished Goods').destroy([id]);
+    await airtable.delete('Finished Goods', [id]);
 
     return NextResponse.json({ success: true, message: 'Finished good deleted' });
   } catch (error: any) {

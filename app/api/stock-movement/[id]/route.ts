@@ -1,15 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/stock-movement/[id] - Get single stock movement
 export async function GET(
@@ -43,7 +41,7 @@ export async function GET(
     }
 
     // 4. Fetch stock movement from Airtable
-    const record = await base('Stock Movement').find(id);
+    const record = await airtable.get('Stock Movement', id);
 
     // 5. Transform to clean format
     const movement = {
@@ -56,7 +54,7 @@ export async function GET(
       from: record.fields['From'] || '',
       to: record.fields['To'] || '',
       date: record.fields['Date'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: movement });
@@ -119,7 +117,7 @@ export async function DELETE(
     }
 
     // 4. Delete stock movement from Airtable
-    await base('Stock Movement').destroy([id]);
+    await airtable.delete('Stock Movement', [id]);
 
     return NextResponse.json({ success: true, message: 'Stock movement deleted' });
   } catch (error: any) {

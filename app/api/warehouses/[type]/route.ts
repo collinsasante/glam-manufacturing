@@ -1,15 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // Warehouse type mapping to Airtable table names
 const WAREHOUSE_TYPES: Record<string, string> = {
@@ -71,19 +69,19 @@ export async function GET(
 
     // 5. Fetch data from Airtable
     const warehouseFilter = WAREHOUSE_FILTERS[type];
-    let query = base(tableName).select({
-      sort: [{ field: tableName === 'Raw Materials' ? 'Material Name' : 'Product Name', direction: 'asc' }],
-    });
+    const sortField = tableName === 'Raw Materials' ? 'Material Name' : 'Product Name';
+
+    // Build query options
+    const queryOptions: any = {
+      sort: [{ field: sortField, direction: 'asc' }],
+    };
 
     // Apply warehouse filter if specified
     if (warehouseFilter) {
-      query = base(tableName).select({
-        filterByFormula: `{Warehouse} = '${warehouseFilter}'`,
-        sort: [{ field: tableName === 'Raw Materials' ? 'Material Name' : 'Product Name', direction: 'asc' }],
-      });
+      queryOptions.filterByFormula = `{Warehouse} = '${warehouseFilter}'`;
     }
 
-    const records = await query.all();
+    const records = await airtable.list(tableName, queryOptions);
 
     // 6. Transform Airtable records to clean format
     const inventory = records.map((record) => {
@@ -99,7 +97,7 @@ export async function GET(
           unit: record.fields['Unit'] || '',
           reorderLevel: record.fields['Reorder Level'] || 0,
           warehouse: record.fields['Warehouse'] || '',
-          createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+          createdTime: record.fields['Created Time'] || record.createdTime,
         };
       }
 
@@ -115,7 +113,7 @@ export async function GET(
         warehouse: record.fields['Warehouse'] || '',
         sellingPrice: record.fields['Selling Price'] || 0,
         costPrice: record.fields['Cost Price'] || 0,
-        createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+        createdTime: record.fields['Created Time'] || record.createdTime,
       };
     });
 

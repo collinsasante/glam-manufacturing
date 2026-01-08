@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { finishedGoodSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/finished-goods - List all finished goods
 export async function GET(request: NextRequest) {
@@ -39,11 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Fetch finished goods from Airtable
-    const records = await base('Finished Goods')
-      .select({
+    const records = await airtable.list('Finished Goods', {
         sort: [{ field: 'Product Name', direction: 'asc' }],
-      })
-      .all();
+      });
 
     // 5. Transform Airtable records to clean format
     const goods = records.map((record) => ({
@@ -53,7 +49,7 @@ export async function GET(request: NextRequest) {
       availableQuantity: record.fields['Available Quantity'] || 0,
       price: record.fields['Price'] || 0,
       status: record.fields['Status'] || 'Available',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     }));
 
     return NextResponse.json({ data: goods, count: goods.length });
@@ -122,19 +118,13 @@ export async function POST(request: NextRequest) {
     const validatedData = validationResult.data;
 
     // 5. Create finished good in Airtable
-    const createdRecords = await base('Finished Goods').create([
-      {
-        fields: {
-          'Product Name': validatedData.productName,
-          'Pack Size/Notes': validatedData.packSize || '',
-          'Available Quantity': validatedData.availableQuantity || 0,
-          'Price': validatedData.price || 0,
-          'Status': validatedData.status || 'Available',
-        },
-      },
-    ]);
-
-    const record = createdRecords[0];
+    const record = await airtable.create('Finished Goods', {
+      'Product Name': validatedData.productName,
+      'Pack Size/Notes': validatedData.packSize || '',
+      'Available Quantity': validatedData.availableQuantity || 0,
+      'Price': validatedData.price || 0,
+      'Status': validatedData.status || 'Available',
+    });
     const good = {
       id: record.id,
       productName: record.fields['Product Name'] || '',
@@ -142,7 +132,7 @@ export async function POST(request: NextRequest) {
       availableQuantity: record.fields['Available Quantity'] || 0,
       price: record.fields['Price'] || 0,
       status: record.fields['Status'] || 'Available',
-      createdTime: record._rawJson.createdTime,
+      createdTime: record.createdTime,
     };
 
     return NextResponse.json({ data: good }, { status: 201 });

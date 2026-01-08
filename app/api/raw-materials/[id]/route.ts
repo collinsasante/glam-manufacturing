@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { rawMaterialSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/raw-materials/[id] - Get single raw material
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch raw material from Airtable
-    const record = await base('Raw Materials').find(id);
+    const record = await airtable.get('Raw Materials', id);
 
     // 5. Transform to clean format
     const material = {
@@ -54,7 +52,7 @@ export async function GET(
       unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: material });
@@ -154,14 +152,7 @@ export async function PATCH(
     }
 
     // 6. Update raw material in Airtable
-    const updatedRecords = await base('Raw Materials').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Raw Materials', id, fields);
     const material = {
       id: record.id,
       materialName: record.fields['Material Name'] || '',
@@ -169,7 +160,7 @@ export async function PATCH(
       unitOfMeasurement: record.fields['Unit of Measurement'] || '',
       unitCost: record.fields['Unit Cost'] || 0,
       currentStock: record.fields['Current Stock'] || 0,
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: material });
@@ -232,7 +223,7 @@ export async function DELETE(
     }
 
     // 4. Delete raw material from Airtable
-    await base('Raw Materials').destroy([id]);
+    await airtable.delete('Raw Materials', [id]);
 
     return NextResponse.json({ success: true, message: 'Raw material deleted' });
   } catch (error: any) {

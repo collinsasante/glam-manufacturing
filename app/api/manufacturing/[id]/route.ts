@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { manufacturingOrderSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/manufacturing/[id] - Get single manufacturing record
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch manufacturing record from Airtable
-    const record = await base('Manufacturing').find(id);
+    const record = await airtable.get('Manufacturing', id);
 
     // 5. Transform to clean format
     const mfg = {
@@ -56,7 +54,7 @@ export async function GET(
       createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: mfg });
@@ -162,14 +160,7 @@ export async function PATCH(
     }
 
     // 6. Update manufacturing record in Airtable
-    const updatedRecords = await base('Manufacturing').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Manufacturing', id, fields);
     const mfg = {
       id: record.id,
       manufacturingId: record.fields['Manufacturing ID'] || '',
@@ -179,7 +170,7 @@ export async function PATCH(
       createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: mfg });
@@ -242,7 +233,7 @@ export async function DELETE(
     }
 
     // 4. Delete manufacturing record from Airtable
-    await base('Manufacturing').destroy([id]);
+    await airtable.delete('Manufacturing', [id]);
 
     return NextResponse.json({ success: true, message: 'Manufacturing record deleted' });
   } catch (error: any) {

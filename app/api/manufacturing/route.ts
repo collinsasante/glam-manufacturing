@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { manufacturingOrderSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/manufacturing - List all manufacturing records
 export async function GET(request: NextRequest) {
@@ -39,11 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Fetch manufacturing records from Airtable
-    const records = await base('Manufacturing')
-      .select({
+    const records = await airtable.list('Manufacturing', {
         sort: [{ field: 'Created on', direction: 'desc' }],
-      })
-      .all();
+      });
 
     // 5. Transform Airtable records to clean format
     const manufacturing = records.map((record) => ({
@@ -55,7 +51,7 @@ export async function GET(request: NextRequest) {
       createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     }));
 
     return NextResponse.json({ data: manufacturing, count: manufacturing.length });
@@ -124,21 +120,15 @@ export async function POST(request: NextRequest) {
     const validatedData = validationResult.data;
 
     // 5. Create manufacturing record in Airtable
-    const createdRecords = await base('Manufacturing').create([
-      {
-        fields: {
-          'Manufacturing ID': validatedData.manufacturingId || '',
-          'Product': validatedData.product ? [validatedData.product] : undefined,
-          'Quantity': validatedData.quantity || 0,
-          'Production Line': validatedData.productionLine || '',
-          'Created on': validatedData.createdOn || new Date().toISOString().split('T')[0],
-          'Status': validatedData.status || 'Pending',
-          'Notes': validatedData.notes || '',
-        },
-      },
-    ]);
-
-    const record = createdRecords[0];
+    const record = await airtable.create('Manufacturing', {
+      'Manufacturing ID': validatedData.manufacturingId || '',
+      'Product': validatedData.product ? [validatedData.product] : undefined,
+      'Quantity': validatedData.quantity || 0,
+      'Production Line': validatedData.productionLine || '',
+      'Created on': validatedData.createdOn || new Date().toISOString().split('T')[0],
+      'Status': validatedData.status || 'Pending',
+      'Notes': validatedData.notes || '',
+    });
     const mfg = {
       id: record.id,
       manufacturingId: record.fields['Manufacturing ID'] || '',
@@ -148,7 +138,7 @@ export async function POST(request: NextRequest) {
       createdOn: record.fields['Created on'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record._rawJson.createdTime,
+      createdTime: record.createdTime,
     };
 
     return NextResponse.json({ data: mfg }, { status: 201 });

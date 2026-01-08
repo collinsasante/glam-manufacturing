@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { stockTransferSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/stock-transfer - List all stock transfers
 export async function GET(request: NextRequest) {
@@ -39,11 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Fetch stock transfers from Airtable
-    const records = await base('Stock Transfer')
-      .select({
+    const records = await airtable.list('Stock Transfer', {
         sort: [{ field: 'Transfer Date', direction: 'desc' }],
-      })
-      .all();
+      });
 
     // 5. Transform Airtable records to clean format
     const transfers = records.map((record) => ({
@@ -55,7 +51,7 @@ export async function GET(request: NextRequest) {
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       remarks: record.fields['Remarks'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     }));
 
     return NextResponse.json({ data: transfers, count: transfers.length });
@@ -124,21 +120,15 @@ export async function POST(request: NextRequest) {
     const validatedData = validationResult.data;
 
     // 5. Create stock transfer in Airtable
-    const createdRecords = await base('Stock Transfer').create([
-      {
-        fields: {
-          'Material': validatedData.material || [],
-          'Quantity Transferred': validatedData.quantityTransferred,
-          'From Warehouse': validatedData.fromWarehouse,
-          'To Warehouse': validatedData.toWarehouse,
-          'Date': validatedData.date || new Date().toISOString().split('T')[0],
-          'Status': validatedData.status || 'Pending',
-          'Remarks': validatedData.remarks || '',
-        },
-      },
-    ]);
-
-    const record = createdRecords[0];
+    const record = await airtable.create('Stock Transfer', {
+      'Material': validatedData.material || [],
+      'Quantity Transferred': validatedData.quantityTransferred,
+      'From Warehouse': validatedData.fromWarehouse,
+      'To Warehouse': validatedData.toWarehouse,
+      'Date': validatedData.date || new Date().toISOString().split('T')[0],
+      'Status': validatedData.status || 'Pending',
+      'Remarks': validatedData.remarks || '',
+    });
     const transfer = {
       id: record.id,
       material: record.fields['Material'] || [],
@@ -148,7 +138,7 @@ export async function POST(request: NextRequest) {
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       remarks: record.fields['Remarks'] || '',
-      createdTime: record._rawJson.createdTime,
+      createdTime: record.createdTime,
     };
 
     return NextResponse.json({ data: transfer }, { status: 201 });

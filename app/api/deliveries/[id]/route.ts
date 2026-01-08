@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { deliverySchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/deliveries/[id] - Get single delivery
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch delivery from Airtable
-    const record = await base('Deliveries').find(id);
+    const record = await airtable.get('Deliveries', id);
 
     // 5. Transform to clean format
     const delivery = {
@@ -56,7 +54,7 @@ export async function GET(
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: delivery });
@@ -162,14 +160,7 @@ export async function PATCH(
     }
 
     // 6. Update delivery in Airtable
-    const updatedRecords = await base('Deliveries').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Deliveries', id, fields);
     const delivery = {
       id: record.id,
       deliveryId: record.fields['Delivery ID'] || '',
@@ -179,7 +170,7 @@ export async function PATCH(
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       notes: record.fields['Notes'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: delivery });
@@ -242,7 +233,7 @@ export async function DELETE(
     }
 
     // 4. Delete delivery from Airtable
-    await base('Deliveries').destroy([id]);
+    await airtable.delete('Deliveries', [id]);
 
     return NextResponse.json({ success: true, message: 'Delivery deleted' });
   } catch (error: any) {

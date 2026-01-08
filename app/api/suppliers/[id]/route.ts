@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { supplierSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/suppliers/[id] - Get single supplier
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch supplier from Airtable
-    const record = await base('Suppliers').find(id);
+    const record = await airtable.get('Suppliers', id);
 
     // 5. Transform to clean format
     const supplier = {
@@ -55,7 +53,7 @@ export async function GET(
       email: record.fields['Email'] || '',
       address: record.fields['Address'] || '',
       website: record.fields['Website'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: supplier });
@@ -158,14 +156,7 @@ export async function PATCH(
     }
 
     // 6. Update supplier in Airtable
-    const updatedRecords = await base('Suppliers').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Suppliers', id, fields);
     const supplier = {
       id: record.id,
       supplierName: record.fields['Supplier Name'] || '',
@@ -174,7 +165,7 @@ export async function PATCH(
       email: record.fields['Email'] || '',
       address: record.fields['Address'] || '',
       website: record.fields['Website'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: supplier });
@@ -237,7 +228,7 @@ export async function DELETE(
     }
 
     // 4. Delete supplier from Airtable
-    await base('Suppliers').destroy([id]);
+    await airtable.delete('Suppliers', [id]);
 
     return NextResponse.json({ success: true, message: 'Supplier deleted' });
   } catch (error: any) {

@@ -1,16 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import Airtable from 'airtable';
-import { verifyIdToken, getUserRole } from '@/lib/firebase-admin';
+import { airtable } from '@/lib/airtable-edge';
+import { verifyIdToken, getUserRole } from '@/lib/firebase-auth-edge';
 import { hasPermission, Permission, UserRole } from '@/lib/rbac';
 import { stockTransferSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/errors';
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 // Initialize Airtable
-const base = new Airtable({
-  apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID!);
 
 // GET /api/stock-transfer/[id] - Get single stock transfer
 export async function GET(
@@ -44,7 +42,7 @@ export async function GET(
     }
 
     // 4. Fetch stock transfer from Airtable
-    const record = await base('Stock Transfer').find(id);
+    const record = await airtable.get('Stock Transfer', id);
 
     // 5. Transform to clean format
     const transfer = {
@@ -56,7 +54,7 @@ export async function GET(
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       remarks: record.fields['Remarks'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: transfer });
@@ -162,14 +160,7 @@ export async function PATCH(
     }
 
     // 6. Update stock transfer in Airtable
-    const updatedRecords = await base('Stock Transfer').update([
-      {
-        id: id,
-        fields,
-      },
-    ]);
-
-    const record = updatedRecords[0];
+    const record = await airtable.update('Stock Transfer', id, fields);
     const transfer = {
       id: record.id,
       material: record.fields['Material'] || [],
@@ -179,7 +170,7 @@ export async function PATCH(
       date: record.fields['Date'] || '',
       status: record.fields['Status'] || '',
       remarks: record.fields['Remarks'] || '',
-      createdTime: record.fields['Created Time'] || record._rawJson.createdTime,
+      createdTime: record.fields['Created Time'] || record.createdTime,
     };
 
     return NextResponse.json({ data: transfer });
@@ -242,7 +233,7 @@ export async function DELETE(
     }
 
     // 4. Delete stock transfer from Airtable
-    await base('Stock Transfer').destroy([id]);
+    await airtable.delete('Stock Transfer', [id]);
 
     return NextResponse.json({ success: true, message: 'Stock transfer deleted' });
   } catch (error: any) {
